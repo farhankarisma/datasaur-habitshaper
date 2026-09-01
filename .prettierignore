@@ -1,0 +1,14 @@
+node_modules
+.pnpm-store
+dist
+build
+coverage
+.turbo
+.vite
+playwright-report
+test-results
+README.md
+pnpm-lock.yaml
+project.md
+*.min.js
+*.min.css
