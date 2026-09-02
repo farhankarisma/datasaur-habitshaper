@@ -2,13 +2,11 @@ services:
   db:
     image: mysql:8.4
     environment:
-      MYSQL_DATABASE: ${MYSQL_DATABASE:?MYSQL_DATABASE is required}
-      MYSQL_SHADOW_DATABASE: ${MYSQL_SHADOW_DATABASE:?MYSQL_SHADOW_DATABASE is required}
-      MYSQL_USER: ${MYSQL_USER:?MYSQL_USER is required}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?MYSQL_PASSWORD is required}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD is required}
-    ports:
-      - '${MYSQL_HOST_PORT:-3307}:3306'
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-habit_shaper}
+      MYSQL_SHADOW_DATABASE: ${MYSQL_SHADOW_DATABASE:-habit_shaper_shadow}
+      MYSQL_USER: ${MYSQL_USER:-habit_shaper}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-dev_only_change_me}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-dev_root_only_change_me}
     volumes:
       - mysql_data:/var/lib/mysql
       - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
@@ -19,6 +17,45 @@ services:
       timeout: 5s
       retries: 20
       start_period: 20s
+
+  migrate:
+    image: habit-shaper-app
+    command: ['./node_modules/.bin/prisma', 'migrate', 'deploy']
+    environment:
+      DATABASE_URL: mysql://${MYSQL_USER:-habit_shaper}:${MYSQL_PASSWORD:-dev_only_change_me}@db:3306/${MYSQL_DATABASE:-habit_shaper}
+      SHADOW_DATABASE_URL: mysql://${MYSQL_USER:-habit_shaper}:${MYSQL_PASSWORD:-dev_only_change_me}@db:3306/${MYSQL_SHADOW_DATABASE:-habit_shaper_shadow}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: 'no'
+
+  app:
+    image: habit-shaper-app
+    build:
+      context: .
+    environment:
+      DATABASE_URL: mysql://${MYSQL_USER:-habit_shaper}:${MYSQL_PASSWORD:-dev_only_change_me}@db:3306/${MYSQL_DATABASE:-habit_shaper}
+      NODE_ENV: production
+      PORT: 3000
+    ports:
+      - '${APP_HOST_PORT:-3000}:3000'
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3000/api/health').then(response => { if (!response.ok) process.exit(1) }).catch(() => process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
 
 volumes:
   mysql_data:
