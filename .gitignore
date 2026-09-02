@@ -5,6 +5,7 @@ node_modules/
 # Build and compiler output
 dist/
 build/
+apps/api/src/generated/prisma/
 .turbo/
 .vite/
 *.tsbuildinfo

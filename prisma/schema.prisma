@@ -1,0 +1,119 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../apps/api/src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum HabitType {
+  BUILD
+  QUIT
+}
+
+enum HabitStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum GoalStatus {
+  ACTIVE
+  COMPLETED
+  REMOVED
+}
+
+model User {
+  id           String    @id @default(uuid()) @db.Char(36)
+  email        String    @unique @db.VarChar(254)
+  passwordHash String    @map("password_hash") @db.VarChar(255)
+  timezone     String    @db.VarChar(64)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.DateTime(3)
+  sessions     Session[]
+  habits       Habit[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String    @id @default(uuid()) @db.Char(36)
+  userId    String    @map("user_id") @db.Char(36)
+  tokenHash String    @unique @map("token_hash") @db.Char(64)
+  expiresAt DateTime  @map("expires_at") @db.DateTime(3)
+  revokedAt DateTime? @map("revoked_at") @db.DateTime(3)
+  createdAt DateTime  @default(now()) @map("created_at") @db.DateTime(3)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([userId, expiresAt])
+  @@map("sessions")
+}
+
+model Habit {
+  id               String            @id @default(uuid()) @db.Char(36)
+  userId           String            @map("user_id") @db.Char(36)
+  name             String            @db.VarChar(100)
+  type             HabitType
+  status           HabitStatus       @default(ACTIVE)
+  createdAt        DateTime          @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt        DateTime          @updatedAt @map("updated_at") @db.DateTime(3)
+  user             User              @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  periods          HabitPeriod[]
+  buildCompletions BuildCompletion[]
+  relapses         Relapse[]
+  goals            Goal[]
+
+  @@index([userId, status, createdAt])
+  @@map("habits")
+}
+
+model HabitPeriod {
+  id        String    @id @default(uuid()) @db.Char(36)
+  habitId   String    @map("habit_id") @db.Char(36)
+  startedOn DateTime  @map("started_on") @db.Date
+  endedOn   DateTime? @map("ended_on") @db.Date
+  createdAt DateTime  @default(now()) @map("created_at") @db.DateTime(3)
+  habit     Habit     @relation(fields: [habitId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([habitId, startedOn])
+  @@map("habit_periods")
+}
+
+model BuildCompletion {
+  id          String   @id @default(uuid()) @db.Char(36)
+  habitId     String   @map("habit_id") @db.Char(36)
+  completedOn DateTime @map("completed_on") @db.Date
+  createdAt   DateTime @default(now()) @map("created_at") @db.DateTime(3)
+  habit       Habit    @relation(fields: [habitId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([habitId, completedOn])
+  @@map("build_completions")
+}
+
+model Relapse {
+  id         String   @id @default(uuid()) @db.Char(36)
+  habitId    String   @map("habit_id") @db.Char(36)
+  relapsedOn DateTime @map("relapsed_on") @db.Date
+  createdAt  DateTime @default(now()) @map("created_at") @db.DateTime(3)
+  habit      Habit    @relation(fields: [habitId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([habitId, relapsedOn])
+  @@map("relapses")
+}
+
+model Goal {
+  id         String      @id @default(uuid()) @db.Char(36)
+  habitId    String      @map("habit_id") @db.Char(36)
+  targetDays Int         @map("target_days") @db.UnsignedInt
+  status     GoalStatus  @default(ACTIVE)
+  activeSlot Int?        @map("active_slot") @db.TinyInt
+  achievedAt DateTime?   @map("achieved_at") @db.DateTime(3)
+  removedAt  DateTime?   @map("removed_at") @db.DateTime(3)
+  createdAt  DateTime    @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt  DateTime    @updatedAt @map("updated_at") @db.DateTime(3)
+  habit      Habit       @relation(fields: [habitId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([habitId, activeSlot])
+  @@index([habitId, status])
+  @@map("goals")
+}
