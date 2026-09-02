@@ -2,6 +2,7 @@ node_modules
 .pnpm-store
 dist
 build
+apps/api/src/generated/prisma
 coverage
 .turbo
 .vite
