@@ -1,3 +1,4 @@
+import fastifyCookie from '@fastify/cookie';
 import { NestFactory } from '@nestjs/core';
 import {
   FastifyAdapter,
@@ -23,6 +24,7 @@ async function bootstrap(): Promise<void> {
     adapter,
   );
 
+  await app.register(fastifyCookie);
   app.setGlobalPrefix('api');
 
   await app.listen(environment.PORT, '0.0.0.0');

@@ -34,3 +34,10 @@ intentionally want to delete the local database data.
 
 Docker Compose supplies safe development defaults. Copy `.env.example` when you
 want to override them; never commit the resulting `.env` file or real secrets.
+
+## Registration API
+
+`POST /api/auth/register` accepts JSON containing `email`, `password`, and an IANA
+`timezone`. A successful request returns only the public user fields and creates an
+opaque database-backed session in an `HttpOnly` cookie. Passwords and raw session
+tokens are never returned or stored in plaintext.
