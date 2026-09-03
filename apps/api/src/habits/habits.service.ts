@@ -5,13 +5,13 @@ import type { CreateHabitInput, RenameHabitInput } from './habit.schema.js';
 @Injectable()
 export class HabitsService {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
-  async list(userId: string) {
+  async list(userId: string, timezone: string) {
     const habits = await this.prisma.habit.findMany({
       where: { userId, status: 'ACTIVE' },
       orderBy: { createdAt: 'asc' },
       include: { buildCompletions: true, relapses: true },
     });
-    const today = this.today();
+    const today = this.today(timezone);
     return habits.map((habit) => ({
       id: habit.id,
       name: habit.name,
@@ -27,10 +27,15 @@ export class HabitsService {
               habit.createdAt,
               today,
             ),
+      completedToday:
+        habit.type === HabitType.BUILD &&
+        habit.buildCompletions.some(
+          (item) => item.completedOn.getTime() === today.getTime(),
+        ),
     }));
   }
-  async create(userId: string, input: CreateHabitInput) {
-    const today = this.today();
+  async create(userId: string, input: CreateHabitInput, timezone: string) {
+    const today = this.today(timezone);
     return this.prisma.habit.create({
       data: {
         userId,
@@ -40,12 +45,17 @@ export class HabitsService {
       },
     });
   }
-  async markToday(userId: string, habitId: string) {
+  async markToday(userId: string, habitId: string, timezone: string) {
+    const today = this.today(timezone);
     const habit = await this.prisma.habit.findFirst({
-      where: { id: habitId, userId, status: 'ACTIVE' },
+      where: {
+        id: habitId,
+        userId,
+        status: 'ACTIVE',
+        periods: { some: { startedOn: { lte: today }, endedOn: null } },
+      },
     });
     if (!habit) throw new NotFoundException();
-    const today = this.today();
     if (habit.type === HabitType.BUILD)
       await this.prisma.buildCompletion.upsert({
         where: { habitId_completedOn: { habitId, completedOn: today } },
@@ -59,6 +69,23 @@ export class HabitsService {
         update: {},
       });
     return habit;
+  }
+  async undoBuildCompletion(userId: string, habitId: string, timezone: string) {
+    const today = this.today(timezone);
+    const habit = await this.prisma.habit.findFirst({
+      where: {
+        id: habitId,
+        userId,
+        type: HabitType.BUILD,
+        status: 'ACTIVE',
+        periods: { some: { startedOn: { lte: today }, endedOn: null } },
+      },
+    });
+    if (!habit) throw new NotFoundException();
+
+    await this.prisma.buildCompletion.deleteMany({
+      where: { habitId: habit.id, completedOn: today },
+    });
   }
   async rename(userId: string, habitId: string, input: RenameHabitInput) {
     const habit = await this.prisma.habit.findFirst({
@@ -77,7 +104,7 @@ export class HabitsService {
     });
     if (!habit) throw new NotFoundException();
 
-    const today = this.today();
+    const today = this.today('UTC');
     return this.prisma.$transaction(async (tx) => {
       await tx.habitPeriod.updateMany({
         where: { habitId: habit.id, endedOn: null },
@@ -89,10 +116,22 @@ export class HabitsService {
       });
     });
   }
-  private today() {
-    const d = new Date();
+  private today(timezone: string): Date {
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).formatToParts();
+    const part = (type: Intl.DateTimeFormatPartTypes): string =>
+      parts.find((item) => item.type === type)!.value;
+
     return new Date(
-      Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()),
+      Date.UTC(
+        Number(part('year')),
+        Number(part('month')) - 1,
+        Number(part('day')),
+      ),
     );
   }
   private buildStreak(completions: Date[], today: Date) {
