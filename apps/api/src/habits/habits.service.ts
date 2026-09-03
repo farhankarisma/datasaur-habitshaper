@@ -20,28 +20,34 @@ export class HabitsService {
       },
     });
     const today = this.today(timezone);
-    return habits.map((habit) => ({
-      id: habit.id,
-      name: habit.name,
-      type: habit.type,
-      streak:
-        habit.type === HabitType.BUILD
-          ? this.buildStreak(
-              habit.buildCompletions.map((item) => item.completedOn),
-              habit.periods[0]?.startedOn ?? habit.createdAt,
-              today,
-            )
+    return habits.map((habit) => {
+      const startedOn = habit.periods[0]?.startedOn ?? habit.createdAt;
+      const buildCompletions = habit.buildCompletions.map(
+        (item) => item.completedOn,
+      );
+      const isBuildHabit = habit.type === HabitType.BUILD;
+
+      return {
+        id: habit.id,
+        name: habit.name,
+        type: habit.type,
+        streak: isBuildHabit
+          ? this.buildStreak(buildCompletions, startedOn, today)
           : this.cleanStreak(
               habit.relapses.map((item) => item.relapsedOn),
               habit.createdAt,
               today,
             ),
-      completedToday:
-        habit.type === HabitType.BUILD &&
-        habit.buildCompletions.some(
-          (item) => item.completedOn.getTime() === today.getTime(),
-        ),
-    }));
+        completedToday:
+          isBuildHabit &&
+          habit.buildCompletions.some(
+            (item) => item.completedOn.getTime() === today.getTime(),
+          ),
+        weekly: isBuildHabit
+          ? this.weeklyBuildProgress(buildCompletions, startedOn, today)
+          : null,
+      };
+    });
   }
   async create(userId: string, input: CreateHabitInput, timezone: string) {
     const today = this.today(timezone);
@@ -160,6 +166,42 @@ export class HabitsService {
       day.setUTCDate(day.getUTCDate() - 1);
     }
     return streak;
+  }
+  private weeklyBuildProgress(
+    completions: Date[],
+    startedOn: Date,
+    today: Date,
+  ) {
+    const weekStart = new Date(today);
+    weekStart.setUTCDate(
+      weekStart.getUTCDate() - ((weekStart.getUTCDay() + 6) % 7),
+    );
+    const firstEligibleDay =
+      startedOn.getTime() > weekStart.getTime() ? startedOn : weekStart;
+    if (firstEligibleDay.getTime() > today.getTime()) {
+      return { eligibleDays: 0, completedDays: 0, missedDays: 0, percent: 0 };
+    }
+
+    const completedDates = new Set(
+      completions.map((date) => date.toISOString().slice(0, 10)),
+    );
+    let eligibleDays = 0;
+    let completedDays = 0;
+    const day = new Date(firstEligibleDay);
+    while (day.getTime() <= today.getTime()) {
+      eligibleDays += 1;
+      if (completedDates.has(day.toISOString().slice(0, 10))) {
+        completedDays += 1;
+      }
+      day.setUTCDate(day.getUTCDate() + 1);
+    }
+
+    return {
+      eligibleDays,
+      completedDays,
+      missedDays: eligibleDays - completedDays,
+      percent: Math.round((completedDays / eligibleDays) * 100),
+    };
   }
   private cleanStreak(relapses: Date[], createdAt: Date, today: Date) {
     const latest =

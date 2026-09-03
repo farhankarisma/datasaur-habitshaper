@@ -93,6 +93,12 @@ describe('HabitsService', () => {
         type: 'BUILD',
         streak: 2,
         completedToday: false,
+        weekly: {
+          eligibleDays: 4,
+          completedDays: 2,
+          missedDays: 2,
+          percent: 50,
+        },
       },
     ]);
     vi.useRealTimers();
@@ -122,6 +128,41 @@ describe('HabitsService', () => {
 
     await expect(service.list('user-1', 'UTC')).resolves.toMatchObject([
       { streak: 1 },
+    ]);
+    vi.useRealTimers();
+  });
+
+  it('excludes future and pre-start days from weekly build progress', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-09-04T12:00:00.000Z'));
+    const service = new HabitsService({
+      habit: {
+        findMany: vi.fn().mockResolvedValue([
+          {
+            id: 'habit-1',
+            name: 'Read',
+            type: 'BUILD',
+            createdAt: new Date('2026-09-03T00:00:00.000Z'),
+            periods: [{ startedOn: new Date('2026-09-03T00:00:00.000Z') }],
+            buildCompletions: [
+              { completedOn: new Date('2026-09-03T00:00:00.000Z') },
+              { completedOn: new Date('2026-09-05T00:00:00.000Z') },
+            ],
+            relapses: [],
+          },
+        ]),
+      },
+    } as unknown as PrismaService);
+
+    await expect(service.list('user-1', 'UTC')).resolves.toMatchObject([
+      {
+        weekly: {
+          eligibleDays: 2,
+          completedDays: 1,
+          missedDays: 1,
+          percent: 50,
+        },
+      },
     ]);
     vi.useRealTimers();
   });
