@@ -1,9 +1,14 @@
-import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { GoalStatus } from '../generated/prisma/client.js';
 import type { HabitType } from '../generated/prisma/client.js';
 import { PrismaService } from '../database/prisma.service.js';
 import { HabitsService } from '../habits/habits.service.js';
-import type { CreateGoalInput } from './dto/goal.schema.js';
+import type { CreateGoalInput, UpdateGoalInput } from './dto/goal.schema.js';
 
 export interface ActiveGoal {
   currentStreak: number;
@@ -81,5 +86,61 @@ export class GoalsService {
       currentStreak: habit.streak,
       habit: { id: habit.id, name: habit.name, type: habit.type },
     };
+  }
+
+  async update(
+    userId: string,
+    goalId: string,
+    input: UpdateGoalInput,
+    timezone: string,
+  ) {
+    const goal = await this.findActiveGoal(userId, goalId);
+    const habit = await this.habits.getActiveHabitProgress(
+      userId,
+      goal.habitId,
+      timezone,
+    );
+    const completed = input.targetDays <= habit.streak;
+
+    return this.prisma.goal.update({
+      where: { id: goal.id },
+      data: completed
+        ? {
+            targetDays: input.targetDays,
+            status: GoalStatus.COMPLETED,
+            activeSlot: null,
+            achievedAt: new Date(),
+          }
+        : { targetDays: input.targetDays },
+    });
+  }
+
+  async remove(userId: string, goalId: string) {
+    const goal = await this.findActiveGoal(userId, goalId);
+
+    return this.prisma.goal.update({
+      where: { id: goal.id },
+      data: {
+        status: GoalStatus.REMOVED,
+        activeSlot: null,
+        removedAt: new Date(),
+      },
+    });
+  }
+
+  private async findActiveGoal(userId: string, goalId: string) {
+    const goal = await this.prisma.goal.findFirst({
+      where: {
+        id: goalId,
+        status: GoalStatus.ACTIVE,
+        habit: { userId, status: 'ACTIVE' },
+      },
+    });
+
+    if (!goal) {
+      throw new NotFoundException();
+    }
+
+    return goal;
   }
 }

@@ -82,4 +82,63 @@ describe('GoalsService', () => {
       },
     ]);
   });
+
+  it('completes a goal when its new target is already met', async () => {
+    const update = vi
+      .fn()
+      .mockResolvedValue({ id: 'goal-1', status: 'COMPLETED' });
+    const service = new GoalsService(
+      {
+        goal: {
+          findFirst: vi
+            .fn()
+            .mockResolvedValue({ id: 'goal-1', habitId: 'habit-1' }),
+          update,
+        },
+      } as unknown as PrismaService,
+      {
+        getActiveHabitProgress: vi.fn().mockResolvedValue({ streak: 14 }),
+      } as unknown as HabitsService,
+    );
+
+    await service.update('user-1', 'goal-1', { targetDays: 14 }, 'UTC');
+
+    expect(update).toHaveBeenCalledWith({
+      where: { id: 'goal-1' },
+      data: expect.objectContaining({
+        targetDays: 14,
+        status: 'COMPLETED',
+        activeSlot: null,
+        achievedAt: expect.any(Date),
+      }),
+    });
+  });
+
+  it('soft-removes an owned active goal', async () => {
+    const update = vi
+      .fn()
+      .mockResolvedValue({ id: 'goal-1', status: 'REMOVED' });
+    const service = new GoalsService(
+      {
+        goal: {
+          findFirst: vi
+            .fn()
+            .mockResolvedValue({ id: 'goal-1', habitId: 'habit-1' }),
+          update,
+        },
+      } as unknown as PrismaService,
+      {} as HabitsService,
+    );
+
+    await service.remove('user-1', 'goal-1');
+
+    expect(update).toHaveBeenCalledWith({
+      where: { id: 'goal-1' },
+      data: expect.objectContaining({
+        status: 'REMOVED',
+        activeSlot: null,
+        removedAt: expect.any(Date),
+      }),
+    });
+  });
 });
