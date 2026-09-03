@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { LoginForm } from '../features/auth/LoginForm';
+import { HabitsPanel } from '../features/habits/HabitsPanel';
 import { RegistrationForm } from '../features/auth/RegistrationForm';
 import { getCurrentUser, logout, type PublicUser } from '../features/auth/register';
 
@@ -50,6 +51,7 @@ export function App() {
           <p className="wordmark">Habit Shaper</p>
           <h1>Your daybook is ready.</h1>
           <p>Signed in as {user.email}. Your habit dashboard is coming next.</p>
+          <HabitsPanel />
           <button
             onClick={() => {
               void logout().finally(() => setUser(null));
