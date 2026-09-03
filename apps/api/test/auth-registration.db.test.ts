@@ -69,4 +69,53 @@ describe('user registration', () => {
       ConflictException,
     );
   });
+
+  it('creates a new session on login and restores only active sessions', async () => {
+    const registered = await service.register(
+      registrationSchema.parse({
+        email: ' LOGIN-INTEGRATION@example.com ',
+        password: 'correct horse battery staple',
+        timezone: 'Asia/Jakarta',
+      }),
+    );
+    userId = registered.user.id;
+
+    const login = await service.login({
+      email: 'login-integration@example.com',
+      password: 'correct horse battery staple',
+    });
+
+    expect(login.sessionToken).not.toBe(registered.sessionToken);
+    await expect(
+      service.findUserBySessionToken(login.sessionToken),
+    ).resolves.toEqual(registered.user);
+
+    await prisma.session.updateMany({
+      where: { userId, tokenHash: { not: '' } },
+      data: { revokedAt: new Date() },
+    });
+    await expect(
+      service.findUserBySessionToken(login.sessionToken),
+    ).resolves.toBeNull();
+  });
+
+  it('does not restore an expired session', async () => {
+    const registered = await service.register(
+      registrationSchema.parse({
+        email: ' EXPIRED-INTEGRATION@example.com ',
+        password: 'correct horse battery staple',
+        timezone: 'Asia/Jakarta',
+      }),
+    );
+    userId = registered.user.id;
+
+    await prisma.session.updateMany({
+      where: { userId },
+      data: { expiresAt: new Date('2020-01-01T00:00:00.000Z') },
+    });
+
+    await expect(
+      service.findUserBySessionToken(registered.sessionToken),
+    ).resolves.toBeNull();
+  });
 });

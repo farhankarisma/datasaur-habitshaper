@@ -1,12 +1,12 @@
 import { useState, type FormEvent } from 'react';
 
-import { register, type PublicUser } from './register';
+import { login, type PublicUser } from './register';
 
-interface RegistrationFormProps {
-  onRegistered: (user: PublicUser) => void;
+interface LoginFormProps {
+  onLoggedIn: (user: PublicUser) => void;
 }
 
-export function RegistrationForm({ onRegistered }: RegistrationFormProps) {
+export function LoginForm({ onLoggedIn }: LoginFormProps) {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -18,15 +18,14 @@ export function RegistrationForm({ onRegistered }: RegistrationFormProps) {
     const formData = new FormData(event.currentTarget);
 
     try {
-      const user = await register({
+      const user = await login({
         email: String(formData.get('email') ?? ''),
         password: String(formData.get('password') ?? ''),
-        timezone: String(formData.get('timezone') ?? ''),
       });
 
-      onRegistered(user);
+      onLoggedIn(user);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Registration failed. Please try again.');
+      setError(caught instanceof Error ? caught.message : 'Unable to sign in. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -35,8 +34,8 @@ export function RegistrationForm({ onRegistered }: RegistrationFormProps) {
   return (
     <form className="auth-form" onSubmit={handleSubmit}>
       <div className="form-copy">
-        <h2>Start with today.</h2>
-        <p>Create a private place to build what helps and leave behind what does not.</p>
+        <h2>Welcome back.</h2>
+        <p>Pick up with the habits that matter to you.</p>
       </div>
 
       <label>
@@ -47,7 +46,7 @@ export function RegistrationForm({ onRegistered }: RegistrationFormProps) {
       <label>
         Password
         <input
-          autoComplete="new-password"
+          autoComplete="current-password"
           maxLength={128}
           minLength={8}
           name="password"
@@ -56,21 +55,10 @@ export function RegistrationForm({ onRegistered }: RegistrationFormProps) {
         />
       </label>
 
-      <label>
-        Timezone
-        <input
-          defaultValue={Intl.DateTimeFormat().resolvedOptions().timeZone}
-          maxLength={64}
-          name="timezone"
-          required
-          type="text"
-        />
-      </label>
-
       {error ? <p role="alert">{error}</p> : null}
 
       <button disabled={isSubmitting} type="submit">
-        {isSubmitting ? 'Creating account…' : 'Create account'}
+        {isSubmitting ? 'Signing in…' : 'Sign in'}
       </button>
     </form>
   );

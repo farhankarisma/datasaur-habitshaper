@@ -74,4 +74,68 @@ describe('AuthController', () => {
     ).rejects.toBeInstanceOf(BadRequestException);
     expect(register).not.toHaveBeenCalled();
   });
+
+  it('logs in with normalized input and sets the session cookie', async () => {
+    const expiresAt = new Date('2026-10-03T00:00:00.000Z');
+    const login = vi.fn().mockResolvedValue({
+      user: {
+        id: 'user-1',
+        email: 'farhan@example.com',
+        timezone: 'Asia/Jakarta',
+      },
+      sessionToken: 'raw-session-token',
+      expiresAt,
+    });
+    const setCookie = vi.fn();
+    const controller = new AuthController({ login } as unknown as AuthService);
+
+    await expect(
+      controller.login(
+        {
+          email: ' FARHAN@example.com ',
+          password: 'correct horse battery staple',
+        },
+        { setCookie } as unknown as FastifyReply,
+      ),
+    ).resolves.toEqual({
+      user: {
+        id: 'user-1',
+        email: 'farhan@example.com',
+        timezone: 'Asia/Jakarta',
+      },
+    });
+    expect(login).toHaveBeenCalledWith({
+      email: 'farhan@example.com',
+      password: 'correct horse battery staple',
+    });
+    expect(setCookie).toHaveBeenCalledWith(
+      SESSION_COOKIE_NAME,
+      'raw-session-token',
+      expect.objectContaining({
+        expires: expiresAt,
+        httpOnly: true,
+        sameSite: 'lax',
+      }),
+    );
+  });
+
+  it('returns the user assigned by the session guard', () => {
+    const controller = new AuthController({} as AuthService);
+
+    expect(
+      controller.me({
+        habitShaperUser: {
+          id: 'user-1',
+          email: 'farhan@example.com',
+          timezone: 'Asia/Jakarta',
+        },
+      } as never),
+    ).toEqual({
+      user: {
+        id: 'user-1',
+        email: 'farhan@example.com',
+        timezone: 'Asia/Jakarta',
+      },
+    });
+  });
 });
