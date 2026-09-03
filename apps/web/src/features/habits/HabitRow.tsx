@@ -15,6 +15,7 @@ interface HabitRowProps {
 export function HabitRow({ habit, isPending, onArchive, onRename, onToggleToday }: HabitRowProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [draftName, setDraftName] = useState(habit.name);
+  const [isConfirmingRelapse, setIsConfirmingRelapse] = useState(false);
 
   async function submitRename(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
@@ -54,7 +55,7 @@ export function HabitRow({ habit, isPending, onArchive, onRename, onToggleToday 
                 {habit.type === 'BUILD' ? 'Build' : 'Quit'} ·{' '}
                 {habit.type === 'BUILD'
                   ? `${habit.streak}-day streak`
-                  : `${habit.streak} clean days`}
+                  : `${habit.streak}-day clean streak`}
               </span>
             </div>
 
@@ -82,14 +83,48 @@ export function HabitRow({ habit, isPending, onArchive, onRename, onToggleToday 
                 aria-pressed={habit.relapsedToday}
                 className="relapse-action"
                 disabled={isPending}
-                onClick={() => void onToggleToday(habit)}
+                onClick={() => {
+                  if (habit.relapsedToday) {
+                    void onToggleToday(habit);
+                  } else {
+                    setIsConfirmingRelapse(true);
+                  }
+                }}
                 type="button"
                 variant="quiet"
               >
-                {habit.relapsedToday ? 'Relapse recorded · Undo' : 'Record relapse'}
+                {habit.relapsedToday ? 'Undo today’s relapse' : 'Record a relapse'}
               </Button>
             )}
           </div>
+
+          {isConfirmingRelapse && !habit.relapsedToday ? (
+            <div className="relapse-confirmation" role="group" aria-label="Confirm relapse">
+              <p>
+                Record a relapse for today? This resets the current clean streak. You can undo it
+                today.
+              </p>
+              <div>
+                <Button
+                  disabled={isPending}
+                  type="button"
+                  onClick={() => {
+                    void onToggleToday(habit).finally(() => setIsConfirmingRelapse(false));
+                  }}
+                >
+                  Record relapse
+                </Button>
+                <Button
+                  disabled={isPending}
+                  type="button"
+                  variant="quiet"
+                  onClick={() => setIsConfirmingRelapse(false)}
+                >
+                  Keep current streak
+                </Button>
+              </div>
+            </div>
+          ) : null}
 
           {habit.weekly ? <WeeklyProgress progress={habit.weekly} /> : null}
 

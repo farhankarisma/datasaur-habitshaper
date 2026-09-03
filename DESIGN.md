@@ -24,7 +24,7 @@ Habit Shaper mengadopsi bahasa desain _Apple-inspired minimalism_. UI tidak meng
 - **Typography Hero:** Teks raksasa di bagian atas ("Welcome back." atau "Start shaping.") menggantikan logo aplikasi.
 - **Form Inputs:** Bergaya _Underline_. Tidak ada _border_ atas/kiri/kanan. Latar belakang transparan dengan garis bawah `border-zinc-200`. Saat fokus, garis bawah berubah menjadi hitam pekat secara halus. Teks input berukuran besar (`text-lg`).
 - **Primary Action:** Tombol hitam solid, lebar penuh (`w-full`), dengan lengkungan sedang (`rounded-xl`). Saat _loading_, teks berubah menjadi "Authenticating..." dengan _opacity_ tombol menurun ke 70% (tanpa _spinner_ berputar).
-- **Motion:** Pergantian dari mode Login ke Register memicu animasi GSAP; form memudar dan meluncur vertikal (_y-axis slide_) dalam 0.3 detik tanpa memuat ulang halaman.
+- **Motion:** Pergantian mode Login/Register berlangsung tanpa reload. Transisi opsional menggunakan native CSS dan menghormati `prefers-reduced-motion`.
 
 ### 2.2 Main Dashboard: "The Today Feed" (`/`)
 
@@ -34,9 +34,9 @@ Halaman ini adalah satu aliran vertikal tanpa sistem _tab_ navigasi yang rumit.
 - **Habit List (Section 1):**
   - Setiap habit dipisahkan oleh garis bawah sangat tipis (`border-b border-zinc-100`).
   - **Kiri (Informasi):** Nama habit yang tegas, dipadukan dengan angka streak dan 7 titik kecil (indikator hari Senin-Minggu).
-  - **Kanan (Aksi):** Lingkaran interaktif berukuran `w-10 h-10`.
+  - **Kanan (Aksi):** Kontrol yang bentuknya mengikuti konsekuensi tindakan.
     - **Build Habit:** Lingkaran kosong. Jika ditekan, terisi hitam dengan ikon centang tipis.
-    - **Quit Habit:** Lingkaran kosong dengan titik di tengah. Jika ditekan (_relapse_), terisi abu-abu gelap dengan ikon 'X' tipis.
+    - **Quit Habit:** Aksi teks "Record a relapse" agar tidak terlihat seperti tindakan sukses. Sebelum menyimpan, tampilkan konsekuensi bahwa clean streak akan di-reset dan bahwa catatan masih dapat di-undo pada hari yang sama.
 - **Active Goals (Section 2):**
   - Dipisahkan dengan jarak yang lega dari _habit list_.
   - Baris progres menggunakan garis yang sangat tipis (`h-1 rounded-full`). _Track_ latar berwarna `bg-zinc-100`, diisi oleh progres berwarna hitam pekat. Rasio hari diletakkan di kanan atas baris (misal: "12 / 30").
