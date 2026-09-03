@@ -1,7 +1,12 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { HabitType } from '../generated/prisma/client.js';
 import { PrismaService } from '../database/prisma.service.js';
-import type { CreateHabitInput, RenameHabitInput } from './habit.schema.js';
+import {
+  buildStreak,
+  cleanStreak,
+  weeklyBuildProgress,
+} from './domain/habit-statistics.js';
+import type { CreateHabitInput, RenameHabitInput } from './dto/habit.schema.js';
 @Injectable()
 export class HabitsService {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
@@ -32,10 +37,10 @@ export class HabitsService {
         name: habit.name,
         type: habit.type,
         streak: isBuildHabit
-          ? this.buildStreak(buildCompletions, startedOn, today)
-          : this.cleanStreak(
+          ? buildStreak(buildCompletions, startedOn, today)
+          : cleanStreak(
               habit.relapses.map((item) => item.relapsedOn),
-              habit.createdAt,
+              startedOn,
               today,
             ),
         completedToday:
@@ -49,7 +54,7 @@ export class HabitsService {
             (item) => item.relapsedOn.getTime() === today.getTime(),
           ),
         weekly: isBuildHabit
-          ? this.weeklyBuildProgress(buildCompletions, startedOn, today)
+          ? weeklyBuildProgress(buildCompletions, startedOn, today)
           : null,
       };
     });
@@ -157,68 +162,6 @@ export class HabitsService {
         Number(part('month')) - 1,
         Number(part('day')),
       ),
-    );
-  }
-  private buildStreak(completions: Date[], startedOn: Date, today: Date) {
-    const dates = new Set(
-      completions.map((date) => date.toISOString().slice(0, 10)),
-    );
-    let streak = 0;
-    const day = new Date(today);
-    if (!dates.has(day.toISOString().slice(0, 10))) {
-      day.setUTCDate(day.getUTCDate() - 1);
-    }
-    while (
-      day.getTime() >= startedOn.getTime() &&
-      dates.has(day.toISOString().slice(0, 10))
-    ) {
-      streak += 1;
-      day.setUTCDate(day.getUTCDate() - 1);
-    }
-    return streak;
-  }
-  private weeklyBuildProgress(
-    completions: Date[],
-    startedOn: Date,
-    today: Date,
-  ) {
-    const weekStart = new Date(today);
-    weekStart.setUTCDate(
-      weekStart.getUTCDate() - ((weekStart.getUTCDay() + 6) % 7),
-    );
-    const firstEligibleDay =
-      startedOn.getTime() > weekStart.getTime() ? startedOn : weekStart;
-    if (firstEligibleDay.getTime() > today.getTime()) {
-      return { eligibleDays: 0, completedDays: 0, missedDays: 0, percent: 0 };
-    }
-
-    const completedDates = new Set(
-      completions.map((date) => date.toISOString().slice(0, 10)),
-    );
-    let eligibleDays = 0;
-    let completedDays = 0;
-    const day = new Date(firstEligibleDay);
-    while (day.getTime() <= today.getTime()) {
-      eligibleDays += 1;
-      if (completedDates.has(day.toISOString().slice(0, 10))) {
-        completedDays += 1;
-      }
-      day.setUTCDate(day.getUTCDate() + 1);
-    }
-
-    return {
-      eligibleDays,
-      completedDays,
-      missedDays: eligibleDays - completedDays,
-      percent: Math.round((completedDays / eligibleDays) * 100),
-    };
-  }
-  private cleanStreak(relapses: Date[], createdAt: Date, today: Date) {
-    const latest =
-      relapses.sort((a, b) => b.getTime() - a.getTime())[0] ?? createdAt;
-    return Math.max(
-      0,
-      Math.floor((today.getTime() - latest.getTime()) / 86_400_000),
     );
   }
 }
