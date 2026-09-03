@@ -9,7 +9,15 @@ export class HabitsService {
     const habits = await this.prisma.habit.findMany({
       where: { userId, status: 'ACTIVE' },
       orderBy: { createdAt: 'asc' },
-      include: { buildCompletions: true, relapses: true },
+      include: {
+        periods: {
+          where: { endedOn: null },
+          orderBy: { startedOn: 'desc' },
+          take: 1,
+        },
+        buildCompletions: true,
+        relapses: true,
+      },
     });
     const today = this.today(timezone);
     return habits.map((habit) => ({
@@ -20,6 +28,7 @@ export class HabitsService {
         habit.type === HabitType.BUILD
           ? this.buildStreak(
               habit.buildCompletions.map((item) => item.completedOn),
+              habit.periods[0]?.startedOn ?? habit.createdAt,
               today,
             )
           : this.cleanStreak(
@@ -134,13 +143,19 @@ export class HabitsService {
       ),
     );
   }
-  private buildStreak(completions: Date[], today: Date) {
+  private buildStreak(completions: Date[], startedOn: Date, today: Date) {
     const dates = new Set(
       completions.map((date) => date.toISOString().slice(0, 10)),
     );
     let streak = 0;
     const day = new Date(today);
-    while (dates.has(day.toISOString().slice(0, 10))) {
+    if (!dates.has(day.toISOString().slice(0, 10))) {
+      day.setUTCDate(day.getUTCDate() - 1);
+    }
+    while (
+      day.getTime() >= startedOn.getTime() &&
+      dates.has(day.toISOString().slice(0, 10))
+    ) {
       streak += 1;
       day.setUTCDate(day.getUTCDate() - 1);
     }
