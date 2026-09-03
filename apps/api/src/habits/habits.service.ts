@@ -1,12 +1,7 @@
-import {
-  ForbiddenException,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { HabitType } from '../generated/prisma/client.js';
 import { PrismaService } from '../database/prisma.service.js';
-import type { CreateHabitInput } from './habit.schema.js';
+import type { CreateHabitInput, RenameHabitInput } from './habit.schema.js';
 @Injectable()
 export class HabitsService {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
@@ -46,11 +41,10 @@ export class HabitsService {
     });
   }
   async markToday(userId: string, habitId: string) {
-    const habit = await this.prisma.habit.findUnique({
-      where: { id: habitId },
+    const habit = await this.prisma.habit.findFirst({
+      where: { id: habitId, userId, status: 'ACTIVE' },
     });
     if (!habit) throw new NotFoundException();
-    if (habit.userId !== userId) throw new ForbiddenException();
     const today = this.today();
     if (habit.type === HabitType.BUILD)
       await this.prisma.buildCompletion.upsert({
@@ -65,6 +59,35 @@ export class HabitsService {
         update: {},
       });
     return habit;
+  }
+  async rename(userId: string, habitId: string, input: RenameHabitInput) {
+    const habit = await this.prisma.habit.findFirst({
+      where: { id: habitId, userId, status: 'ACTIVE' },
+    });
+    if (!habit) throw new NotFoundException();
+
+    return this.prisma.habit.update({
+      where: { id: habit.id },
+      data: { name: input.name },
+    });
+  }
+  async archive(userId: string, habitId: string) {
+    const habit = await this.prisma.habit.findFirst({
+      where: { id: habitId, userId, status: 'ACTIVE' },
+    });
+    if (!habit) throw new NotFoundException();
+
+    const today = this.today();
+    return this.prisma.$transaction(async (tx) => {
+      await tx.habitPeriod.updateMany({
+        where: { habitId: habit.id, endedOn: null },
+        data: { endedOn: today },
+      });
+      return tx.habit.update({
+        where: { id: habit.id },
+        data: { status: 'ARCHIVED' },
+      });
+    });
   }
   private today() {
     const d = new Date();

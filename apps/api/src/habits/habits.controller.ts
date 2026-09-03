@@ -1,8 +1,11 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Inject,
+  Param,
+  Patch,
   Post,
   Put,
   Req,
@@ -10,7 +13,7 @@ import {
 } from '@nestjs/common';
 import type { FastifyRequest } from 'fastify';
 import { SessionGuard } from '../auth/session.guard.js';
-import { createHabitSchema } from './habit.schema.js';
+import { createHabitSchema, renameHabitSchema } from './habit.schema.js';
 import { HabitsService } from './habits.service.js';
 @Controller('habits')
 @UseGuards(SessionGuard)
@@ -30,5 +33,21 @@ export class HabitsController {
       r.habitShaperUser!.id,
       (r.params as { id: string }).id,
     );
+  }
+  @Patch(':id')
+  rename(
+    @Req() r: FastifyRequest,
+    @Param('id') id: string,
+    @Body() body: unknown,
+  ) {
+    return this.habits.rename(
+      r.habitShaperUser!.id,
+      id,
+      renameHabitSchema.parse(body),
+    );
+  }
+  @Delete(':id')
+  archive(@Req() r: FastifyRequest, @Param('id') id: string) {
+    return this.habits.archive(r.habitShaperUser!.id, id);
   }
 }
