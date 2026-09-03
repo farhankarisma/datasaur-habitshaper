@@ -11,10 +11,20 @@ import { Button } from '../../shared/components/Button';
 type AuthMode = 'login' | 'register';
 type SessionStatus = 'loading' | 'signed-in' | 'signed-out';
 
+function formatLocalDate(timezone: string): string {
+  return new Intl.DateTimeFormat('en-US', {
+    day: 'numeric',
+    month: 'long',
+    timeZone: timezone,
+    weekday: 'long',
+  }).format(new Date());
+}
+
 export function AppPage() {
   const [user, setUser] = useState<PublicUser | null>(null);
   const [mode, setMode] = useState<AuthMode>('register');
   const [sessionStatus, setSessionStatus] = useState<SessionStatus>('loading');
+  const [progressRevision, setProgressRevision] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -54,12 +64,12 @@ export function AppPage() {
           void logout().finally(() => setUser(null));
         }}
       >
-        <div className="daybook-intro daybook-intro--compact">
-          <h1>Your daybook is ready.</h1>
-          <p>Signed in as {user.email}. Keep your attention on today.</p>
+        <div className="dashboard-intro">
+          <h1>{formatLocalDate(user.timezone)}</h1>
+          <p>Your private daybook for today. Signed in as {user.email}.</p>
         </div>
-        <HabitsPanel />
-        <GoalsPanel />
+        <HabitsPanel onProgressChange={() => setProgressRevision((current) => current + 1)} />
+        <GoalsPanel refreshKey={progressRevision} />
       </AppLayout>
     );
   }

@@ -43,15 +43,15 @@ Halaman ini adalah satu aliran vertikal tanpa sistem _tab_ navigasi yang rumit.
 - **Archived Habits (Section 3):**
   - Tersembunyi di balik teks _accordion_ di bagian paling bawah. Habit yang diarsipkan tampil dengan teks pudar (`opacity-50`) dan **tanpa lingkaran aksi**.
 
-### 2.3 Creation & Edit Modals (Slide-overs)
+### 2.3 Creation & Edit Forms (Inline Disclosure)
 
 Tidak ada URL baru untuk pembuatan entri; UI tetap mempertahankan konteks "Hari Ini".
 
-- **Layout:** _Bottom Sheet_ untuk mobile (muncul dari bawah) dan _Side Drawer_ untuk desktop (muncul dari samping), dilatarbelakangi efek _blur_ tipis pada _dashboard_.
-- **Create Habit - Segmented Control:** Dua tombol berbentuk pil besar (Build / Quit) saling menempel di atas form. Pilihan aktif berwarna hitam, non-aktif berwarna abu-abu terang.
-- **Create Habit - Input Name:** Teks input raksasa tanpa batas kotak (`text-3xl`), dengan _placeholder_ abu-abu terang ("e.g., Baca buku 15 menit..."). Kursor langsung aktif saat modal terbuka.
-- **Create Goal - Mad-libs Format:** Alih-alih form standar, input dirangkai seperti kalimat: _"Saya ingin menjaga habit [Dropdown Habit] selama [Input Angka 30] hari berturut-turut."_
-- **Edit Mode:** Diakses dengan menekan lama (_long press_) nama habit. Berisi opsi ubah nama dan tombol bahaya di bawah: "Archive Habit".
+- **Layout:** Tombol aksi section membuka form ringkas tepat di bawah heading. Pola ini berlaku konsisten di desktop dan mobile tanpa modal, blur, atau perubahan konteks.
+- **Create Habit:** Nama, jenis Build/Quit, dan aksi submit ditampilkan dalam satu baris pada desktop dan mengalir menjadi dua baris pada mobile.
+- **Create Goal:** Habit, target hari, dan aksi submit menggunakan pola yang sama dengan create habit.
+- **Edit Mode:** Aksi Rename/Edit dan Archive/Remove selalu dapat ditemukan pada baris terkait. Form edit menggantikan isi baris sementara dan langsung memfokuskan input.
+- **Feedback:** Tombol submit menjelaskan status pending melalui copy, sedangkan kegagalan tampil dekat dengan section terkait.
 
 ---
 
