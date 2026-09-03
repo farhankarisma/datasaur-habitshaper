@@ -1,9 +1,9 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { App } from './App';
+import { AppPage } from './AppPage';
 
-describe('App', () => {
+describe('AppPage', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
   });
@@ -11,7 +11,7 @@ describe('App', () => {
   it('restores no user into a focused registration screen', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ status: 401 }));
 
-    render(<App />);
+    render(<AppPage />);
 
     expect(
       await screen.findByRole('heading', { name: /a quieter way to return to your day/i }),
@@ -22,7 +22,7 @@ describe('App', () => {
   it('switches to the sign-in form', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ status: 401 }));
 
-    render(<App />);
+    render(<AppPage />);
 
     await screen.findByRole('button', { name: 'Sign in' });
     fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));

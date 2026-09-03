@@ -22,7 +22,8 @@ services:
 
   migrate:
     image: habit-shaper-app
-    command: ['./node_modules/.bin/prisma', 'migrate', 'deploy']
+    command:
+      ['./node_modules/.bin/prisma', 'migrate', 'deploy', '--config', 'apps/api/prisma.config.ts']
     environment:
       DATABASE_URL: mysql://${MYSQL_USER:-habit_shaper}:${MYSQL_PASSWORD:-dev_only_change_me}@db:3306/${MYSQL_DATABASE:-habit_shaper}
       SHADOW_DATABASE_URL: mysql://${MYSQL_USER:-habit_shaper}:${MYSQL_PASSWORD:-dev_only_change_me}@db:3306/${MYSQL_SHADOW_DATABASE:-habit_shaper_shadow}
