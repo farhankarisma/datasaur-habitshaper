@@ -29,7 +29,7 @@ describe('HabitsService', () => {
     } as unknown as PrismaService);
 
     await expect(
-      service.archive('user-1', 'other-users-habit'),
+      service.archive('user-1', 'other-users-habit', 'UTC'),
     ).rejects.toBeInstanceOf(NotFoundException);
     expect(update).not.toHaveBeenCalled();
   });
@@ -193,6 +193,33 @@ describe('HabitsService', () => {
         relapsedOn: new Date('2026-09-04T00:00:00.000Z'),
       },
       update: {},
+    });
+    vi.useRealTimers();
+  });
+
+  it('archives a habit on the authenticated user’s local date', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-09-03T17:30:00.000Z'));
+    const updateMany = vi.fn();
+    const update = vi
+      .fn()
+      .mockResolvedValue({ id: 'habit-1', status: 'ARCHIVED' });
+    const transaction = vi.fn((callback) =>
+      callback({ habitPeriod: { updateMany }, habit: { update } }),
+    );
+    const service = new HabitsService({
+      habit: {
+        findFirst: vi.fn().mockResolvedValue({ id: 'habit-1' }),
+        update,
+      },
+      $transaction: transaction,
+    } as unknown as PrismaService);
+
+    await service.archive('user-1', 'habit-1', 'Asia/Jakarta');
+
+    expect(updateMany).toHaveBeenCalledWith({
+      where: { habitId: 'habit-1', endedOn: null },
+      data: { endedOn: new Date('2026-09-04T00:00:00.000Z') },
     });
     vi.useRealTimers();
   });
