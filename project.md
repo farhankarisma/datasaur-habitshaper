@@ -624,8 +624,7 @@ habit-shaper/
 ├── scripts/
 ├── .github/
 │   └── workflows/
-├── compose.yaml
-├── compose.dev.yaml
+├── compose.yml
 ├── Dockerfile
 ├── .env.example
 ├── package.json

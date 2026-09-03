@@ -1,4 +1,4 @@
-import { createHabitSchema, renameHabitSchema } from './dto/habit.schema.js';
+import { createHabitSchema, renameHabitSchema } from './habit.schema.js';
 
 describe('habit schemas', () => {
   it('trims valid habit names', () => {

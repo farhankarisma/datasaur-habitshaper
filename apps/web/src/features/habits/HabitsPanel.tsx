@@ -1,4 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
+
+import { Button } from '../../shared/components/Button';
+import { EmptyState } from '../../shared/components/EmptyState';
 type HabitType = 'BUILD' | 'QUIT';
 interface Habit {
   id: string;
@@ -94,79 +97,86 @@ export function HabitsPanel() {
           <option value="BUILD">Build</option>
           <option value="QUIT">Quit</option>
         </select>
-        <button type="submit">Add habit</button>
+        <Button type="submit">Add habit</Button>
       </form>
-      <ul>
-        {habits.map((h) => (
-          <li key={h.id}>
-            {editingId === h.id ? (
-              <form
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  void renameHabit(h.id);
+      {habits.length === 0 ? (
+        <EmptyState
+          description="Add one small action you want to practise or leave behind."
+          title="No habits yet"
+        />
+      ) : (
+        <ul>
+          {habits.map((h) => (
+            <li key={h.id}>
+              {editingId === h.id ? (
+                <form
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    void renameHabit(h.id);
+                  }}
+                >
+                  <input
+                    aria-label={`Rename ${h.name}`}
+                    value={editingName}
+                    onChange={(event) => setEditingName(event.target.value)}
+                  />
+                  <Button type="submit">Save</Button>
+                  <Button type="button" variant="quiet" onClick={() => setEditingId(null)}>
+                    Cancel
+                  </Button>
+                </form>
+              ) : (
+                <span>
+                  {h.name}{' '}
+                  <small>
+                    {h.type === 'BUILD' ? `${h.streak}-day streak` : `${h.streak} clean days`}
+                  </small>
+                  {h.weekly ? (
+                    <small>
+                      {' '}
+                      This week: {h.weekly.completedDays}/{h.weekly.eligibleDays} complete ·{' '}
+                      {h.weekly.missedDays} missed · {h.weekly.percent}%
+                    </small>
+                  ) : null}
+                </span>
+              )}
+              <Button
+                onClick={() => {
+                  const markedToday = h.type === 'BUILD' ? h.completedToday : h.relapsedToday;
+                  const method = markedToday ? 'DELETE' : 'PUT';
+                  void fetch(`/api/habits/${h.id}/today`, {
+                    method,
+                    credentials: 'include',
+                  }).then((response) => {
+                    if (response.ok) void loadHabits();
+                  });
+                }}
+                type="button"
+              >
+                {h.type === 'BUILD'
+                  ? h.completedToday
+                    ? 'Undo today'
+                    : 'Complete today'
+                  : h.relapsedToday
+                    ? 'Undo relapse'
+                    : 'I relapsed today'}
+              </Button>
+              <Button
+                type="button"
+                onClick={() => {
+                  setEditingId(h.id);
+                  setEditingName(h.name);
                 }}
               >
-                <input
-                  aria-label={`Rename ${h.name}`}
-                  value={editingName}
-                  onChange={(event) => setEditingName(event.target.value)}
-                />
-                <button type="submit">Save</button>
-                <button type="button" onClick={() => setEditingId(null)}>
-                  Cancel
-                </button>
-              </form>
-            ) : (
-              <span>
-                {h.name}{' '}
-                <small>
-                  {h.type === 'BUILD' ? `${h.streak}-day streak` : `${h.streak} clean days`}
-                </small>
-                {h.weekly ? (
-                  <small>
-                    {' '}
-                    This week: {h.weekly.completedDays}/{h.weekly.eligibleDays} complete ·{' '}
-                    {h.weekly.missedDays} missed · {h.weekly.percent}%
-                  </small>
-                ) : null}
-              </span>
-            )}
-            <button
-              onClick={() => {
-                const markedToday = h.type === 'BUILD' ? h.completedToday : h.relapsedToday;
-                const method = markedToday ? 'DELETE' : 'PUT';
-                void fetch(`/api/habits/${h.id}/today`, {
-                  method,
-                  credentials: 'include',
-                }).then((response) => {
-                  if (response.ok) void loadHabits();
-                });
-              }}
-              type="button"
-            >
-              {h.type === 'BUILD'
-                ? h.completedToday
-                  ? 'Undo today'
-                  : 'Complete today'
-                : h.relapsedToday
-                  ? 'Undo relapse'
-                  : 'I relapsed today'}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setEditingId(h.id);
-                setEditingName(h.name);
-              }}
-            >
-              Rename
-            </button>
-            <button type="button" onClick={() => void archiveHabit(h.id)}>
-              Archive
-            </button>
-          </li>
-        ))}
-      </ul>
+                Rename
+              </Button>
+              <Button type="button" variant="danger" onClick={() => void archiveHabit(h.id)}>
+                Archive
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }
