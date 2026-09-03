@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { LoginForm } from '../features/auth/LoginForm';
 import { RegistrationForm } from '../features/auth/RegistrationForm';
-import { getCurrentUser, type PublicUser } from '../features/auth/register';
+import { getCurrentUser, logout, type PublicUser } from '../features/auth/register';
 
 type AuthMode = 'login' | 'register';
 type SessionStatus = 'loading' | 'signed-in' | 'signed-out';
@@ -50,6 +50,14 @@ export function App() {
           <p className="wordmark">Habit Shaper</p>
           <h1>Your daybook is ready.</h1>
           <p>Signed in as {user.email}. Your habit dashboard is coming next.</p>
+          <button
+            onClick={() => {
+              void logout().finally(() => setUser(null));
+            }}
+            type="button"
+          >
+            Sign out
+          </button>
         </section>
       </main>
     );

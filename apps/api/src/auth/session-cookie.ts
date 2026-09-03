@@ -15,3 +15,7 @@ export function setSessionCookie(
     secure: process.env.NODE_ENV === 'production',
   });
 }
+
+export function clearSessionCookie(reply: FastifyReply): void {
+  reply.clearCookie(SESSION_COOKIE_NAME, { path: '/' });
+}
