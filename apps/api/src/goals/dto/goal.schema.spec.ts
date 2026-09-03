@@ -1,4 +1,4 @@
-import { createGoalSchema } from './goal.schema.js';
+import { createGoalSchema, updateGoalSchema } from './goal.schema.js';
 
 describe('createGoalSchema', () => {
   it.each([
@@ -15,5 +15,11 @@ describe('createGoalSchema', () => {
         targetDays,
       }).success,
     ).toBe(false);
+  });
+});
+
+describe('updateGoalSchema', () => {
+  it('accepts a positive integer target without a habit id', () => {
+    expect(updateGoalSchema.safeParse({ targetDays: 14 }).success).toBe(true);
   });
 });
