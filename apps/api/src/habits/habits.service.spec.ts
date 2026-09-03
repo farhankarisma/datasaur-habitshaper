@@ -33,4 +33,34 @@ describe('HabitsService', () => {
     ).rejects.toBeInstanceOf(NotFoundException);
     expect(update).not.toHaveBeenCalled();
   });
+
+  it('uses the authenticated user timezone for an idempotent build completion', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-09-03T17:30:00.000Z'));
+    const findFirst = vi
+      .fn()
+      .mockResolvedValue({ id: 'habit-1', type: 'BUILD' });
+    const upsert = vi.fn();
+    const service = new HabitsService({
+      habit: { findFirst },
+      buildCompletion: { upsert },
+    } as unknown as PrismaService);
+
+    await service.markToday('user-1', 'habit-1', 'Asia/Jakarta');
+
+    expect(upsert).toHaveBeenCalledWith({
+      where: {
+        habitId_completedOn: {
+          habitId: 'habit-1',
+          completedOn: new Date('2026-09-04T00:00:00.000Z'),
+        },
+      },
+      create: {
+        habitId: 'habit-1',
+        completedOn: new Date('2026-09-04T00:00:00.000Z'),
+      },
+      update: {},
+    });
+    vi.useRealTimers();
+  });
 });

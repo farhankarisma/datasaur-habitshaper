@@ -20,18 +20,28 @@ import { HabitsService } from './habits.service.js';
 export class HabitsController {
   constructor(@Inject(HabitsService) private readonly habits: HabitsService) {}
   @Get() list(@Req() r: FastifyRequest) {
-    return this.habits.list(r.habitShaperUser!.id);
+    return this.habits.list(r.habitShaperUser!.id, r.habitShaperUser!.timezone);
   }
   @Post() create(@Req() r: FastifyRequest, @Body() body: unknown) {
     return this.habits.create(
       r.habitShaperUser!.id,
       createHabitSchema.parse(body),
+      r.habitShaperUser!.timezone,
     );
   }
   @Put(':id/today') mark(@Req() r: FastifyRequest) {
     return this.habits.markToday(
       r.habitShaperUser!.id,
       (r.params as { id: string }).id,
+      r.habitShaperUser!.timezone,
+    );
+  }
+  @Delete(':id/today')
+  undoBuildCompletion(@Req() r: FastifyRequest) {
+    return this.habits.undoBuildCompletion(
+      r.habitShaperUser!.id,
+      (r.params as { id: string }).id,
+      r.habitShaperUser!.timezone,
     );
   }
   @Patch(':id')

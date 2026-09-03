@@ -5,6 +5,7 @@ interface Habit {
   name: string;
   type: HabitType;
   streak: number;
+  completedToday: boolean;
 }
 export function HabitsPanel() {
   const [habits, setHabits] = useState<Habit[]>([]);
@@ -12,10 +13,13 @@ export function HabitsPanel() {
   const [type, setType] = useState<HabitType>('BUILD');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
-  useEffect(() => {
-    void fetch('/api/habits', { credentials: 'include' })
+  async function loadHabits() {
+    await fetch('/api/habits', { credentials: 'include' })
       .then((r) => (r.ok ? r.json() : []))
       .then(setHabits);
+  }
+  useEffect(() => {
+    void loadHabits();
   }, []);
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -28,7 +32,7 @@ export function HabitsPanel() {
     });
     if (r.ok) {
       const habit = await r.json();
-      setHabits((x) => [...x, { ...habit, streak: 0 }]);
+      setHabits((x) => [...x, { ...habit, streak: 0, completedToday: false }]);
       setName('');
     }
   }
@@ -105,12 +109,22 @@ export function HabitsPanel() {
               </span>
             )}
             <button
-              onClick={async () => {
-                await fetch(`/api/habits/${h.id}/today`, { method: 'PUT', credentials: 'include' });
+              onClick={() => {
+                const method = h.completedToday ? 'DELETE' : 'PUT';
+                void fetch(`/api/habits/${h.id}/today`, {
+                  method,
+                  credentials: 'include',
+                }).then((response) => {
+                  if (response.ok) void loadHabits();
+                });
               }}
               type="button"
             >
-              {h.type === 'BUILD' ? 'Complete today' : 'I relapsed today'}
+              {h.type === 'BUILD'
+                ? h.completedToday
+                  ? 'Undo today'
+                  : 'Complete today'
+                : 'I relapsed today'}
             </button>
             <button
               type="button"
