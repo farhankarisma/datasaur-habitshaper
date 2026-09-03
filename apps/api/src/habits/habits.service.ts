@@ -43,6 +43,11 @@ export class HabitsService {
           habit.buildCompletions.some(
             (item) => item.completedOn.getTime() === today.getTime(),
           ),
+        relapsedToday:
+          !isBuildHabit &&
+          habit.relapses.some(
+            (item) => item.relapsedOn.getTime() === today.getTime(),
+          ),
         weekly: isBuildHabit
           ? this.weeklyBuildProgress(buildCompletions, startedOn, today)
           : null,
@@ -85,22 +90,27 @@ export class HabitsService {
       });
     return habit;
   }
-  async undoBuildCompletion(userId: string, habitId: string, timezone: string) {
+  async undoToday(userId: string, habitId: string, timezone: string) {
     const today = this.today(timezone);
     const habit = await this.prisma.habit.findFirst({
       where: {
         id: habitId,
         userId,
-        type: HabitType.BUILD,
         status: 'ACTIVE',
         periods: { some: { startedOn: { lte: today }, endedOn: null } },
       },
     });
     if (!habit) throw new NotFoundException();
 
-    await this.prisma.buildCompletion.deleteMany({
-      where: { habitId: habit.id, completedOn: today },
-    });
+    if (habit.type === HabitType.BUILD) {
+      await this.prisma.buildCompletion.deleteMany({
+        where: { habitId: habit.id, completedOn: today },
+      });
+    } else {
+      await this.prisma.relapse.deleteMany({
+        where: { habitId: habit.id, relapsedOn: today },
+      });
+    }
   }
   async rename(userId: string, habitId: string, input: RenameHabitInput) {
     const habit = await this.prisma.habit.findFirst({

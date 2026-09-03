@@ -6,6 +6,7 @@ interface Habit {
   type: HabitType;
   streak: number;
   completedToday: boolean;
+  relapsedToday: boolean;
   weekly: {
     eligibleDays: number;
     completedDays: number;
@@ -38,7 +39,16 @@ export function HabitsPanel() {
     });
     if (r.ok) {
       const habit = await r.json();
-      setHabits((x) => [...x, { ...habit, streak: 0, completedToday: false, weekly: null }]);
+      setHabits((x) => [
+        ...x,
+        {
+          ...habit,
+          streak: 0,
+          completedToday: false,
+          relapsedToday: false,
+          weekly: null,
+        },
+      ]);
       setName('');
     }
   }
@@ -123,7 +133,8 @@ export function HabitsPanel() {
             )}
             <button
               onClick={() => {
-                const method = h.completedToday ? 'DELETE' : 'PUT';
+                const markedToday = h.type === 'BUILD' ? h.completedToday : h.relapsedToday;
+                const method = markedToday ? 'DELETE' : 'PUT';
                 void fetch(`/api/habits/${h.id}/today`, {
                   method,
                   credentials: 'include',
@@ -137,7 +148,9 @@ export function HabitsPanel() {
                 ? h.completedToday
                   ? 'Undo today'
                   : 'Complete today'
-                : 'I relapsed today'}
+                : h.relapsedToday
+                  ? 'Undo relapse'
+                  : 'I relapsed today'}
             </button>
             <button
               type="button"
