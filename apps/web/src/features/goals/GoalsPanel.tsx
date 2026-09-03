@@ -36,6 +36,7 @@ export function GoalsPanel({ refreshKey }: GoalsPanelProps) {
   const [habits, setHabits] = useState<GoalHabit[]>([]);
   const [status, setStatus] = useState<PanelStatus>('loading');
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [pendingGoalId, setPendingGoalId] = useState<string | null>(null);
   const [isCreatingPending, setIsCreatingPending] = useState(false);
@@ -82,6 +83,7 @@ export function GoalsPanel({ refreshKey }: GoalsPanelProps) {
     event.preventDefault();
     setIsCreatingPending(true);
     setError('');
+    setNotice('');
 
     try {
       const response = await fetch('/api/goals', {
@@ -96,6 +98,8 @@ export function GoalsPanel({ refreshKey }: GoalsPanelProps) {
       setTargetDays('30');
       setIsCreating(false);
       await refreshGoals();
+      const habitName = habits.find((habit) => habit.id === habitId)?.name ?? 'Habit';
+      setNotice(`A ${targetDays}-day goal was created for ${habitName}.`);
     } catch {
       setError('The goal could not be created. Check the details and try again.');
     } finally {
@@ -106,6 +110,7 @@ export function GoalsPanel({ refreshKey }: GoalsPanelProps) {
   async function updateGoal(goalId: string, nextTargetDays: number): Promise<boolean> {
     setPendingGoalId(goalId);
     setError('');
+    setNotice('');
 
     try {
       const response = await fetch(`/api/goals/${goalId}`, {
@@ -117,6 +122,7 @@ export function GoalsPanel({ refreshKey }: GoalsPanelProps) {
       if (!response.ok) throw new Error();
 
       await refreshGoals();
+      setNotice(`The goal target was updated to ${nextTargetDays} days.`);
       return true;
     } catch {
       setError('The goal could not be updated. Try again.');
@@ -127,8 +133,10 @@ export function GoalsPanel({ refreshKey }: GoalsPanelProps) {
   }
 
   async function removeGoal(goalId: string): Promise<void> {
+    const habitName = overview.active.find((goal) => goal.id === goalId)?.habit.name ?? 'Habit';
     setPendingGoalId(goalId);
     setError('');
+    setNotice('');
 
     try {
       const response = await fetch(`/api/goals/${goalId}`, {
@@ -137,6 +145,7 @@ export function GoalsPanel({ refreshKey }: GoalsPanelProps) {
       });
       if (!response.ok) throw new Error();
       await refreshGoals();
+      setNotice(`The active goal for ${habitName} was removed.`);
     } catch {
       setError('The goal could not be removed. Try again.');
     } finally {
@@ -158,40 +167,46 @@ export function GoalsPanel({ refreshKey }: GoalsPanelProps) {
             </Button>
           ) : undefined
         }
-        description="Consecutive days turn a daily practice into an achievement."
+        description="Set a consecutive-day target for an active habit. Reaching it preserves an achievement."
         headingId="goals-heading"
         title="Active goals"
       />
 
       {isCreating && eligibleHabits.length > 0 ? (
         <form className="create-form" onSubmit={(event) => void submit(event)}>
-          <select
-            aria-label="Habit for goal"
-            required
-            value={habitId}
-            onChange={(event) => setHabitId(event.target.value)}
-          >
-            <option value="" disabled>
-              Choose a habit
-            </option>
-            {eligibleHabits.map((habit) => (
-              <option key={habit.id} value={habit.id}>
-                {habit.name}
+          <label className="form-field">
+            <span>Habit</span>
+            <select required value={habitId} onChange={(event) => setHabitId(event.target.value)}>
+              <option value="" disabled>
+                Choose a habit
               </option>
-            ))}
-          </select>
-          <input
-            aria-label="Target days"
-            min="1"
-            required
-            type="number"
-            value={targetDays}
-            onChange={(event) => setTargetDays(event.target.value)}
-          />
+              {eligibleHabits.map((habit) => (
+                <option key={habit.id} value={habit.id}>
+                  {habit.name} ({habit.type === 'BUILD' ? 'Build' : 'Quit'})
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="form-field">
+            <span>Consecutive days</span>
+            <input
+              min="1"
+              required
+              type="number"
+              value={targetDays}
+              onChange={(event) => setTargetDays(event.target.value)}
+            />
+          </label>
           <Button disabled={isCreatingPending} type="submit">
             {isCreatingPending ? 'Saving…' : 'Set goal'}
           </Button>
         </form>
+      ) : null}
+
+      {notice ? (
+        <p aria-live="polite" className="section-notice" role="status">
+          {notice}
+        </p>
       ) : null}
 
       {error ? (

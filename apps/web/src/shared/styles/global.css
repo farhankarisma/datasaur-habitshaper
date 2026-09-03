@@ -330,6 +330,23 @@ h1 {
   border-bottom: 1px solid var(--color-hairline);
 }
 
+.form-field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  color: var(--color-ink-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.form-helper {
+  grid-column: 1 / -1;
+  margin: 2px 0 0;
+  color: var(--color-ink-secondary);
+  font-size: 0.8125rem;
+  font-weight: 400;
+}
+
 .create-form input,
 .create-form select,
 .row-edit-form input {
@@ -443,6 +460,31 @@ h1 {
   font-weight: 500;
 }
 
+.relapse-confirmation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+}
+
+.relapse-confirmation p {
+  max-width: 44ch;
+  margin: 0;
+  color: var(--color-ink-secondary);
+  font-size: 0.875rem;
+}
+
+.relapse-confirmation > div {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 4px;
+}
+
 .weekly-progress {
   display: flex;
   align-items: center;
@@ -553,6 +595,13 @@ h1 {
   font-weight: 500;
 }
 
+.section-notice {
+  margin: 0;
+  color: var(--color-ink-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
 .achievements-panel {
   display: grid;
   gap: 16px;
@@ -607,6 +656,17 @@ h1 {
   .create-form select,
   .row-edit-form input {
     grid-column: 1 / -1;
+  }
+
+  .create-form > .form-field,
+  .create-form > .button {
+    grid-column: 1 / -1;
+  }
+
+  .relapse-confirmation {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
   }
 
   .weekly-progress {

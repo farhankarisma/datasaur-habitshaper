@@ -66,7 +66,10 @@ export function AppPage() {
       >
         <div className="dashboard-intro">
           <h1>{formatLocalDate(user.timezone)}</h1>
-          <p>Your private daybook for today. Signed in as {user.email}.</p>
+          <p>
+            Complete what you are building. Record a relapse only when it happens. Your history
+            stays private.
+          </p>
         </div>
         <HabitsPanel onProgressChange={() => setProgressRevision((current) => current + 1)} />
         <GoalsPanel refreshKey={progressRevision} />

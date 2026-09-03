@@ -22,6 +22,7 @@ export function HabitsPanel({ onProgressChange }: HabitsPanelProps) {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [status, setStatus] = useState<PanelStatus>('loading');
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [isCreatingPending, setIsCreatingPending] = useState(false);
   const [pendingHabitId, setPendingHabitId] = useState<string | null>(null);
@@ -63,6 +64,7 @@ export function HabitsPanel({ onProgressChange }: HabitsPanelProps) {
 
     setIsCreatingPending(true);
     setError('');
+    setNotice('');
 
     try {
       const response = await fetch('/api/habits', {
@@ -86,6 +88,7 @@ export function HabitsPanel({ onProgressChange }: HabitsPanelProps) {
       ]);
       setName('');
       setIsCreating(false);
+      setNotice(`${habit.name} was added as a ${type === 'BUILD' ? 'Build habit' : 'Quit habit'}.`);
     } catch {
       setError('The habit could not be created. Check the details and try again.');
     } finally {
@@ -97,6 +100,7 @@ export function HabitsPanel({ onProgressChange }: HabitsPanelProps) {
     if (!nextName.trim()) return false;
     setPendingHabitId(habitId);
     setError('');
+    setNotice('');
 
     try {
       const response = await fetch(`/api/habits/${habitId}`, {
@@ -111,6 +115,7 @@ export function HabitsPanel({ onProgressChange }: HabitsPanelProps) {
       setHabits((current) =>
         current.map((item) => (item.id === habitId ? { ...item, name: habit.name } : item)),
       );
+      setNotice(`Habit renamed to ${habit.name}.`);
       return true;
     } catch {
       setError('The habit could not be renamed. Try again.');
@@ -121,8 +126,10 @@ export function HabitsPanel({ onProgressChange }: HabitsPanelProps) {
   }
 
   async function archiveHabit(habitId: string): Promise<void> {
+    const habitName = habits.find((habit) => habit.id === habitId)?.name ?? 'Habit';
     setPendingHabitId(habitId);
     setError('');
+    setNotice('');
 
     try {
       const response = await fetch(`/api/habits/${habitId}`, {
@@ -131,6 +138,7 @@ export function HabitsPanel({ onProgressChange }: HabitsPanelProps) {
       });
       if (!response.ok) throw new Error();
       setHabits((current) => current.filter((item) => item.id !== habitId));
+      setNotice(`${habitName} was archived. Its history is preserved.`);
     } catch {
       setError('The habit could not be archived. Try again.');
     } finally {
@@ -141,6 +149,7 @@ export function HabitsPanel({ onProgressChange }: HabitsPanelProps) {
   async function toggleToday(habit: Habit): Promise<void> {
     setPendingHabitId(habit.id);
     setError('');
+    setNotice('');
 
     try {
       const markedToday = habit.type === 'BUILD' ? habit.completedToday : habit.relapsedToday;
@@ -151,6 +160,19 @@ export function HabitsPanel({ onProgressChange }: HabitsPanelProps) {
       if (!response.ok) throw new Error();
       await refreshHabits();
       onProgressChange();
+      if (habit.type === 'BUILD') {
+        setNotice(
+          habit.completedToday
+            ? `Today’s completion for ${habit.name} was undone.`
+            : `${habit.name} was completed for today.`,
+        );
+      } else {
+        setNotice(
+          habit.relapsedToday
+            ? `Today’s relapse for ${habit.name} was removed. The clean streak was recalculated.`
+            : `A relapse was recorded for ${habit.name}. You can undo it today.`,
+        );
+      }
     } catch {
       setError('Today’s update could not be saved. Try again.');
     } finally {
@@ -170,34 +192,50 @@ export function HabitsPanel({ onProgressChange }: HabitsPanelProps) {
             {isCreating ? 'Close' : 'Add habit'}
           </Button>
         }
-        description="Record today once. Your history stays truthful."
+        description="Build habits advance when completed. Quit habits advance on days without a relapse."
         headingId="habits-heading"
         title="Your habits"
       />
 
       {isCreating ? (
         <form className="create-form" onSubmit={(event) => void submit(event)}>
-          <input
-            aria-label="Habit name"
-            autoFocus
-            maxLength={100}
-            required
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder="Read for 20 minutes"
-          />
-          <select
-            aria-label="Habit type"
-            value={type}
-            onChange={(event) => setType(event.target.value as HabitType)}
-          >
-            <option value="BUILD">Build</option>
-            <option value="QUIT">Quit</option>
-          </select>
+          <label className="form-field">
+            <span>Habit name</span>
+            <input
+              autoFocus
+              maxLength={100}
+              required
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              placeholder="Read for 20 minutes"
+            />
+          </label>
+          <label className="form-field">
+            <span>Direction</span>
+            <select
+              aria-describedby="habit-direction-help"
+              value={type}
+              onChange={(event) => setType(event.target.value as HabitType)}
+            >
+              <option value="BUILD">Build a habit</option>
+              <option value="QUIT">Quit a habit</option>
+            </select>
+          </label>
           <Button disabled={isCreatingPending} type="submit">
             {isCreatingPending ? 'Adding…' : 'Add habit'}
           </Button>
+          <p className="form-helper" id="habit-direction-help">
+            {type === 'BUILD'
+              ? 'Mark it complete on each day you do it.'
+              : 'Clean days accumulate automatically. Record a relapse only when it happens.'}
+          </p>
         </form>
+      ) : null}
+
+      {notice ? (
+        <p aria-live="polite" className="section-notice" role="status">
+          {notice}
+        </p>
       ) : null}
 
       {error ? (
