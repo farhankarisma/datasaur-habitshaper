@@ -8,6 +8,14 @@ import {
 } from './domain/habit-statistics.js';
 import { localCalendarDate } from './domain/local-calendar-date.js';
 import type { CreateHabitInput, RenameHabitInput } from './dto/habit.schema.js';
+
+export interface ActiveHabitProgress {
+  id: string;
+  name: string;
+  streak: number;
+  type: HabitType;
+}
+
 @Injectable()
 export class HabitsService {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
@@ -70,6 +78,27 @@ export class HabitsService {
         periods: { create: { startedOn: today } },
       },
     });
+  }
+
+  async getActiveHabitProgress(
+    userId: string,
+    habitId: string,
+    timezone: string,
+  ): Promise<ActiveHabitProgress> {
+    const habit = (await this.list(userId, timezone)).find(
+      (item) => item.id === habitId,
+    );
+
+    if (!habit) {
+      throw new NotFoundException();
+    }
+
+    return {
+      id: habit.id,
+      name: habit.name,
+      streak: habit.streak,
+      type: habit.type,
+    };
   }
   async markToday(userId: string, habitId: string, timezone: string) {
     const today = this.today(timezone);
