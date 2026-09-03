@@ -1,5 +1,6 @@
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
-import { GoalStatus, HabitType } from '../generated/prisma/client.js';
+import { GoalStatus } from '../generated/prisma/client.js';
+import type { HabitType } from '../generated/prisma/client.js';
 import { PrismaService } from '../database/prisma.service.js';
 import { HabitsService } from '../habits/habits.service.js';
 import type { CreateGoalInput } from './dto/goal.schema.js';
