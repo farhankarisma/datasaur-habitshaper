@@ -305,6 +305,33 @@ h1 {
   margin: 0;
 }
 
+.achievements-panel {
+  display: grid;
+  gap: 10px;
+  padding-top: 8px;
+}
+
+.achievements-panel h3 {
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+.achievements-panel ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.achievements-panel li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #3a3a3c;
+  font-size: 0.875rem;
+}
+
 .empty-state p {
   margin-top: 6px;
   font-size: 0.9375rem;

@@ -21,6 +21,22 @@ export interface ActiveGoal {
   targetDays: number;
 }
 
+export interface CompletedGoal {
+  achievedAt: Date;
+  habit: {
+    id: string;
+    name: string;
+    type: HabitType;
+  };
+  id: string;
+  targetDays: number;
+}
+
+export interface GoalsOverview {
+  achievements: CompletedGoal[];
+  active: ActiveGoal[];
+}
+
 @Injectable()
 export class GoalsService {
   constructor(
@@ -28,8 +44,10 @@ export class GoalsService {
     @Inject(HabitsService) private readonly habits: HabitsService,
   ) {}
 
-  async list(userId: string, timezone: string): Promise<ActiveGoal[]> {
-    const [goals, habits] = await Promise.all([
+  async list(userId: string, timezone: string): Promise<GoalsOverview> {
+    const habits = await this.habits.list(userId, timezone);
+    await this.completeReachedGoals(habits);
+    const [goals, achievements] = await Promise.all([
       this.prisma.goal.findMany({
         where: {
           status: GoalStatus.ACTIVE,
@@ -38,11 +56,15 @@ export class GoalsService {
         include: { habit: { select: { id: true, name: true, type: true } } },
         orderBy: { createdAt: 'asc' },
       }),
-      this.habits.list(userId, timezone),
+      this.prisma.goal.findMany({
+        where: { status: GoalStatus.COMPLETED, habit: { userId } },
+        include: { habit: { select: { id: true, name: true, type: true } } },
+        orderBy: { achievedAt: 'desc' },
+      }),
     ]);
     const streaks = new Map(habits.map((habit) => [habit.id, habit.streak]));
 
-    return goals.flatMap((goal) => {
+    const active = goals.flatMap((goal) => {
       const currentStreak = streaks.get(goal.habitId);
 
       return currentStreak === undefined
@@ -56,6 +78,22 @@ export class GoalsService {
             },
           ];
     });
+
+    return {
+      active,
+      achievements: achievements.flatMap((goal) =>
+        goal.achievedAt
+          ? [
+              {
+                id: goal.id,
+                targetDays: goal.targetDays,
+                achievedAt: goal.achievedAt,
+                habit: goal.habit,
+              },
+            ]
+          : [],
+      ),
+    };
   }
 
   async create(
@@ -124,6 +162,47 @@ export class GoalsService {
         status: GoalStatus.REMOVED,
         activeSlot: null,
         removedAt: new Date(),
+      },
+    });
+  }
+
+  async completeReachedGoal(
+    userId: string,
+    habitId: string,
+    timezone: string,
+  ): Promise<void> {
+    const habit = await this.habits.getActiveHabitProgress(
+      userId,
+      habitId,
+      timezone,
+    );
+    await this.completeGoalsForProgress(habit.id, habit.streak);
+  }
+
+  private async completeReachedGoals(
+    habits: Array<{ id: string; streak: number }>,
+  ): Promise<void> {
+    await Promise.all(
+      habits.map((habit) =>
+        this.completeGoalsForProgress(habit.id, habit.streak),
+      ),
+    );
+  }
+
+  private async completeGoalsForProgress(
+    habitId: string,
+    streak: number,
+  ): Promise<void> {
+    await this.prisma.goal.updateMany({
+      where: {
+        habitId,
+        status: GoalStatus.ACTIVE,
+        targetDays: { lte: streak },
+      },
+      data: {
+        status: GoalStatus.COMPLETED,
+        activeSlot: null,
+        achievedAt: new Date(),
       },
     });
   }

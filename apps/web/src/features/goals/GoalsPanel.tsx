@@ -16,8 +16,21 @@ interface Goal {
   targetDays: number;
 }
 
+interface Achievement {
+  achievedAt: string;
+  habit: Habit;
+  id: string;
+  targetDays: number;
+}
+
+interface GoalsOverview {
+  achievements: Achievement[];
+  active: Goal[];
+}
+
 export function GoalsPanel() {
   const [goals, setGoals] = useState<Goal[]>([]);
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [habits, setHabits] = useState<Habit[]>([]);
   const [habitId, setHabitId] = useState('');
   const [targetDays, setTargetDays] = useState('30');
@@ -30,7 +43,11 @@ export function GoalsPanel() {
       fetch('/api/habits', { credentials: 'include' }),
     ]);
 
-    setGoals(goalsResponse.ok ? await goalsResponse.json() : []);
+    const overview: GoalsOverview = goalsResponse.ok
+      ? await goalsResponse.json()
+      : { active: [], achievements: [] };
+    setGoals(overview.active);
+    setAchievements(overview.achievements);
     setHabits(habitsResponse.ok ? await habitsResponse.json() : []);
   }
 
@@ -169,6 +186,20 @@ export function GoalsPanel() {
           ))}
         </ul>
       )}
+
+      {achievements.length > 0 ? (
+        <section className="achievements-panel" aria-labelledby="achievements-heading">
+          <h3 id="achievements-heading">Achievements</h3>
+          <ul>
+            {achievements.map((achievement) => (
+              <li key={achievement.id}>
+                <strong>{achievement.habit.name}</strong>
+                <span>{achievement.targetDays} days completed</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
     </section>
   );
 }

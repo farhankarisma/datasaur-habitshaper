@@ -58,14 +58,18 @@ describe('GoalsService', () => {
     const service = new GoalsService(
       {
         goal: {
-          findMany: vi.fn().mockResolvedValue([
-            {
-              id: 'goal-1',
-              habitId: 'habit-1',
-              targetDays: 30,
-              habit: { id: 'habit-1', name: 'Read', type: 'BUILD' },
-            },
-          ]),
+          updateMany: vi.fn(),
+          findMany: vi
+            .fn()
+            .mockResolvedValueOnce([
+              {
+                id: 'goal-1',
+                habitId: 'habit-1',
+                targetDays: 30,
+                habit: { id: 'habit-1', name: 'Read', type: 'BUILD' },
+              },
+            ])
+            .mockResolvedValueOnce([]),
         },
       } as unknown as PrismaService,
       {
@@ -73,14 +77,45 @@ describe('GoalsService', () => {
       } as unknown as HabitsService,
     );
 
-    await expect(service.list('user-1', 'UTC')).resolves.toEqual([
+    await expect(service.list('user-1', 'UTC')).resolves.toEqual({
+      active: [
+        {
+          id: 'goal-1',
+          targetDays: 30,
+          currentStreak: 4,
+          habit: { id: 'habit-1', name: 'Read', type: 'BUILD' },
+        },
+      ],
+      achievements: [],
+    });
+  });
+
+  it('completes a reached active goal only while it remains active', async () => {
+    const updateMany = vi.fn();
+    const service = new GoalsService(
+      { goal: { updateMany } } as unknown as PrismaService,
       {
-        id: 'goal-1',
-        targetDays: 30,
-        currentStreak: 4,
-        habit: { id: 'habit-1', name: 'Read', type: 'BUILD' },
+        getActiveHabitProgress: vi.fn().mockResolvedValue({
+          id: 'habit-1',
+          streak: 30,
+        }),
+      } as unknown as HabitsService,
+    );
+
+    await service.completeReachedGoal('user-1', 'habit-1', 'UTC');
+
+    expect(updateMany).toHaveBeenCalledWith({
+      where: {
+        habitId: 'habit-1',
+        status: 'ACTIVE',
+        targetDays: { lte: 30 },
       },
-    ]);
+      data: expect.objectContaining({
+        status: 'COMPLETED',
+        activeSlot: null,
+        achievedAt: expect.any(Date),
+      }),
+    });
   });
 
   it('completes a goal when its new target is already met', async () => {

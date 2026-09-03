@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  forwardRef,
   Get,
   Inject,
   Param,
@@ -15,10 +16,15 @@ import type { FastifyRequest } from 'fastify';
 import { SessionGuard } from '../auth/session.guard.js';
 import { createHabitSchema, renameHabitSchema } from './dto/habit.schema.js';
 import { HabitsService } from './habits.service.js';
+import { GoalsService } from '../goals/goals.service.js';
 @Controller('habits')
 @UseGuards(SessionGuard)
 export class HabitsController {
-  constructor(@Inject(HabitsService) private readonly habits: HabitsService) {}
+  constructor(
+    @Inject(HabitsService) private readonly habits: HabitsService,
+    @Inject(forwardRef(() => GoalsService))
+    private readonly goals: GoalsService,
+  ) {}
   @Get() list(@Req() r: FastifyRequest) {
     return this.habits.list(r.habitShaperUser!.id, r.habitShaperUser!.timezone);
   }
@@ -29,12 +35,19 @@ export class HabitsController {
       r.habitShaperUser!.timezone,
     );
   }
-  @Put(':id/today') mark(@Req() r: FastifyRequest) {
-    return this.habits.markToday(
+  @Put(':id/today')
+  async mark(@Req() r: FastifyRequest) {
+    const habit = await this.habits.markToday(
       r.habitShaperUser!.id,
       (r.params as { id: string }).id,
       r.habitShaperUser!.timezone,
     );
+    await this.goals.completeReachedGoal(
+      r.habitShaperUser!.id,
+      habit.id,
+      r.habitShaperUser!.timezone,
+    );
+    return habit;
   }
   @Delete(':id/today')
   undoToday(@Req() r: FastifyRequest) {
