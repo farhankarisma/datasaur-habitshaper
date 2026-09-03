@@ -40,8 +40,8 @@ A task is `DONE` only when:
 | `FOUND-001` | Scaffold React and NestJS applications       | `BACKLOG`     | `CI-001`                          |
 | `FOUND-002` | Add initial Prisma schema and migration      | `BACKLOG`     | `FOUND-001`, approved data model  |
 | `FOUND-003` | Add one-command Compose startup              | `BACKLOG`     | `FOUND-001`, `FOUND-002`          |
-| `FOUND-004` | Add configuration validation                 | `BACKLOG`     | `FOUND-003`                       |
-| `AUTH-001`  | Add registration                             | `BACKLOG`     | `FOUND-002` through `FOUND-004`   |
+| `FOUND-004` | Add configuration validation                 | `DONE`        | `FOUND-003`                       |
+| `AUTH-001`  | Add registration                             | `DONE`        | `FOUND-002` through `FOUND-004`   |
 | `AUTH-002`  | Add login and session restoration            | `BACKLOG`     | `AUTH-001`                        |
 | `AUTH-003`  | Add logout                                   | `BACKLOG`     | `AUTH-002`                        |
 | `AUTH-004`  | Prove cross-user isolation                   | `BACKLOG`     | `AUTH-002`, protected modules     |

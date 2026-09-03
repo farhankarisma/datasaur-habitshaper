@@ -1447,7 +1447,7 @@ Relative size indicates complexity, not a calendar commitment. No deadline was s
 
 #### FOUND-004: Add configuration validation
 
-- **Status:** `BACKLOG`
+- **Status:** `DONE`
 - **Size:** S
 - **Outcome:** Missing or malformed configuration fails early with understandable messages.
 - **Deliverables:** Backend environment schema, frontend public-env validation, `.env.example`, and README variable table.
@@ -1459,7 +1459,7 @@ Relative size indicates complexity, not a calendar commitment. No deadline was s
 
 #### AUTH-001: Register users
 
-- **Status:** `BACKLOG`
+- **Status:** `DONE`
 - **Size:** M
 - **Outcome:** A visitor can register with email, password, and timezone and become authenticated.
 - **Deliverables:** Registration DTO, validation, email normalization, Argon2id hashing, user persistence, initial session, registration form, API mutation, and tests.
