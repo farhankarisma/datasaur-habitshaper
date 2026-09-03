@@ -1,5 +1,9 @@
 import { createRoot } from 'react-dom/client';
 
+import '@fontsource/newsreader/400.css';
+import '@fontsource/newsreader/500.css';
+import '@fontsource/newsreader/600.css';
+
 import { AppPage } from './app/pages/AppPage';
 import { AppProviders } from './app/providers/AppProviders';
 import './shared/styles/global.css';
