@@ -4,6 +4,7 @@ interface Habit {
   id: string;
   name: string;
   type: HabitType;
+  streak: number;
 }
 export function HabitsPanel() {
   const [habits, setHabits] = useState<Habit[]>([]);
@@ -25,7 +26,7 @@ export function HabitsPanel() {
     });
     if (r.ok) {
       const habit = await r.json();
-      setHabits((x) => [...x, habit]);
+      setHabits((x) => [...x, { ...habit, streak: 0 }]);
       setName('');
     }
   }
@@ -52,7 +53,20 @@ export function HabitsPanel() {
       <ul>
         {habits.map((h) => (
           <li key={h.id}>
-            {h.name} <small>{h.type}</small>
+            <span>
+              {h.name}{' '}
+              <small>
+                {h.type === 'BUILD' ? `${h.streak}-day streak` : `${h.streak} clean days`}
+              </small>
+            </span>
+            <button
+              onClick={async () => {
+                await fetch(`/api/habits/${h.id}/today`, { method: 'PUT', credentials: 'include' });
+              }}
+              type="button"
+            >
+              {h.type === 'BUILD' ? 'Complete today' : 'I relapsed today'}
+            </button>
           </li>
         ))}
       </ul>
