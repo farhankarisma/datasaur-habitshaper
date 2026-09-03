@@ -6,6 +6,12 @@ interface Habit {
   type: HabitType;
   streak: number;
   completedToday: boolean;
+  weekly: {
+    eligibleDays: number;
+    completedDays: number;
+    missedDays: number;
+    percent: number;
+  } | null;
 }
 export function HabitsPanel() {
   const [habits, setHabits] = useState<Habit[]>([]);
@@ -32,7 +38,7 @@ export function HabitsPanel() {
     });
     if (r.ok) {
       const habit = await r.json();
-      setHabits((x) => [...x, { ...habit, streak: 0, completedToday: false }]);
+      setHabits((x) => [...x, { ...habit, streak: 0, completedToday: false, weekly: null }]);
       setName('');
     }
   }
@@ -106,6 +112,13 @@ export function HabitsPanel() {
                 <small>
                   {h.type === 'BUILD' ? `${h.streak}-day streak` : `${h.streak} clean days`}
                 </small>
+                {h.weekly ? (
+                  <small>
+                    {' '}
+                    This week: {h.weekly.completedDays}/{h.weekly.eligibleDays} complete ·{' '}
+                    {h.weekly.missedDays} missed · {h.weekly.percent}%
+                  </small>
+                ) : null}
               </span>
             )}
             <button
