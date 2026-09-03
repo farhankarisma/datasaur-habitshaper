@@ -1,13 +1,7 @@
 :root {
-  color: #1f2937;
-  background: #f7f7f5;
-  font-family:
-    Inter,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    sans-serif;
+  color: #1d1d1f;
+  background: #f5f5f7;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
@@ -22,126 +16,205 @@ body {
   margin: 0;
 }
 
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
 .app-shell {
   display: grid;
   min-height: 100vh;
   place-items: center;
-  padding: 24px;
+  padding: 32px;
 }
 
-.auth-layout {
-  display: grid;
-  width: min(100%, 980px);
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  overflow: hidden;
-  border: 1px solid #e5e7eb;
-  border-radius: 20px;
-  background: #ffffff;
-  box-shadow: 0 16px 40px rgb(15 23 42 / 8%);
+.app-shell--loading {
+  background: #f5f5f7;
 }
 
-.welcome-card,
-.registration-form {
-  padding: 48px;
+.loading-note {
+  color: #6e6e73;
+  font-size: 0.9375rem;
 }
 
-.welcome-card {
-  width: min(100%, 680px);
+.daybook {
+  width: min(100%, 520px);
+  padding: 28px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 18px 45px rgb(29 29 31 / 10%);
 }
 
-.app-shell > .welcome-card {
-  border: 1px solid #e5e7eb;
-  border-radius: 20px;
-  background: #ffffff;
-  box-shadow: 0 16px 40px rgb(15 23 42 / 8%);
+.daybook-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e8e8ed;
 }
 
-.auth-layout .welcome-card {
-  width: auto;
-  background: #eff6ff;
-}
-
-.registration-form {
-  display: grid;
-  gap: 20px;
-}
-
-.registration-form h2 {
-  margin: 8px 0 0;
-  color: #111827;
-}
-
-.registration-form label {
-  display: grid;
-  gap: 8px;
-  color: #374151;
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.registration-form input {
-  width: 100%;
-  padding: 12px 14px;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  font: inherit;
-}
-
-.registration-form input:focus {
-  border-color: #2563eb;
-  outline: 3px solid rgb(37 99 235 / 15%);
-}
-
-.registration-form button {
-  padding: 12px 16px;
-  border: 0;
-  border-radius: 10px;
-  background: #2563eb;
-  color: #ffffff;
-  cursor: pointer;
-  font: inherit;
-  font-weight: 700;
-}
-
-.registration-form button:disabled {
-  cursor: wait;
-  opacity: 0.65;
-}
-
-.registration-form [role='alert'] {
+.wordmark {
   margin: 0;
-  color: #b91c1c;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
-.eyebrow {
-  color: #2563eb;
-  font-size: 0.875rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.date-mark {
+  margin: 0;
+  color: #86868b;
+  font-size: 0.8125rem;
+}
+
+.daybook-intro {
+  padding: 48px 0 32px;
+}
+
+h1,
+h2 {
+  color: #1d1d1f;
+  letter-spacing: -0.03em;
 }
 
 h1 {
-  margin: 12px 0;
-  color: #111827;
-  font-size: clamp(2rem, 6vw, 3.5rem);
+  max-width: 14ch;
+  margin: 0;
+  font-size: clamp(2.25rem, 7vw, 3.5rem);
   line-height: 1.05;
 }
 
-.welcome-card > p:last-child {
-  max-width: 56ch;
-  color: #4b5563;
-  line-height: 1.7;
+.daybook-intro p,
+.daybook--signed-in > p:last-child,
+.form-copy p {
+  margin: 16px 0 0;
+  color: #6e6e73;
+  line-height: 1.55;
 }
 
-@media (max-width: 720px) {
-  .auth-layout {
-    grid-template-columns: 1fr;
-  }
+.auth-switch {
+  display: flex;
+  gap: 4px;
+  width: fit-content;
+  margin-bottom: 30px;
+  padding: 3px;
+  border-radius: 10px;
+  background: #f5f5f7;
+}
 
-  .welcome-card,
-  .registration-form {
+.auth-switch button {
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 7px;
+  color: #6e6e73;
+  background: transparent;
+  font-size: 0.8125rem;
+}
+
+.auth-switch button.is-active {
+  color: #1d1d1f;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(29 29 31 / 14%);
+}
+
+.auth-form {
+  display: grid;
+  gap: 18px;
+}
+
+.form-copy {
+  margin-bottom: 4px;
+}
+
+.form-copy h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+
+.form-copy p {
+  margin-top: 8px;
+  font-size: 0.9375rem;
+}
+
+.auth-form label {
+  display: grid;
+  gap: 8px;
+  color: #3a3a3c;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.auth-form input {
+  width: 100%;
+  padding: 12px 13px;
+  border: 1px solid #d2d2d7;
+  border-radius: 10px;
+  color: #1d1d1f;
+  background: #fff;
+  outline: none;
+}
+
+.auth-form input:focus {
+  border-color: #0071e3;
+  box-shadow: 0 0 0 3px rgb(0 113 227 / 17%);
+}
+
+.auth-form button[type='submit'] {
+  min-height: 44px;
+  margin-top: 6px;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 10px;
+  color: #fff;
+  background: #0071e3;
+  font-weight: 600;
+}
+
+.auth-form button[type='submit']:hover {
+  background: #0077ed;
+}
+
+.auth-form button:focus-visible,
+.auth-switch button:focus-visible {
+  outline: 3px solid rgb(0 113 227 / 28%);
+  outline-offset: 2px;
+}
+
+.auth-form button:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+
+.auth-form [role='alert'] {
+  margin: 0;
+  color: #b3261e;
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.daybook--signed-in {
+  padding: 48px;
+}
+
+.daybook--signed-in h1 {
+  margin-top: 36px;
+}
+
+@media (max-width: 560px) {
+  .app-shell {
+    padding: 16px;
+  }
+  .daybook {
+    padding: 22px;
+  }
+  .daybook-intro {
+    padding: 40px 0 28px;
+  }
+  .daybook--signed-in {
     padding: 32px;
   }
 }

@@ -1,0 +1,61 @@
+{
+  "title": "Choose Habit Shaper’s visual world",
+  "question": "A calm, private journal is the pinned direction. Confirm it or choose a different visual world before implementation.",
+  "options": [
+    {
+      "id": "daybook",
+      "label": "Private Daybook",
+      "kicker": "PINNED DIRECTION",
+      "lineage": "quiet personal day planners and Apple-like native utility interfaces",
+      "thesis": "A private place for one person to return to their day with clarity, not perform productivity.",
+      "palette": ["#F5F5F7", "#FFFFFF", "#1D1D1F", "#0071E3"],
+      "materials": ["soft white paper", "subtle translucent panels", "fine graphite dividers"],
+      "viewport": "A generous white sign-in panel sits in a quiet field; Habit Shaper and one short promise lead, with the form as the only action.",
+      "risk": "Too much restraint could make early MVP states feel unfinished unless typography and spacing stay precise.",
+      "case": "Best on audience identification and product clarity: it directly matches the requested calm, individual companion.",
+      "sketch": ".impeccable/sketches/daybook.png"
+    },
+    {
+      "id": "catalog",
+      "label": "Personal Record",
+      "kicker": "CHALLENGER",
+      "lineage": "Factory Records catalog sleeves",
+      "thesis": "Each habit becomes a private record, indexed with disciplined calm.",
+      "palette": ["#141414", "#F7F7F7", "#7EA1FF", "#8A8A8F"],
+      "materials": ["matte black", "hairline plot marks", "coded color blocks"],
+      "viewport": "A near-black account surface organizes identity as one small catalog entry with strict index lines.",
+      "risk": "Fuses poorly because the coded, austere identity can make a private daily companion feel cold.",
+      "case": "Strong distinction, but loses product clarity to the quieter daybook direction.",
+      "sketch": ".impeccable/sketches/catalog.png",
+      "hero": "https://impeccable.style/worlds/cards/brand-identity-canon-saville-catalog-sleeve-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/brand-identity-canon-saville-catalog-sleeve.webp"
+    },
+    {
+      "id": "nixie",
+      "label": "Visible Count",
+      "kicker": "CHALLENGER",
+      "lineage": "nixie-tube laboratory counters",
+      "thesis": "Streaks become physical counts that glow once a day is complete.",
+      "palette": ["#111111", "#FF9F0A", "#E5E5EA", "#FFFFFF"],
+      "materials": ["glass tubes", "blackened steel", "orange plasma"],
+      "viewport": "A compact sign-in panel is framed as an instrument with one softly glowing count display.",
+      "risk": "Fuses poorly because visible instrumentation shifts attention toward streak mechanics before the product has earned it.",
+      "case": "Memorable, but too playful and mechanically styled for the requested private journal.",
+      "sketch": ".impeccable/sketches/nixie.png",
+      "hero": "https://impeccable.style/worlds/cards/signals-instruments-nixie-laboratory-counter-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/signals-instruments-nixie-laboratory-counter.webp"
+    }
+  ],
+  "reroll": true,
+  "steer": true,
+  "canon": true,
+  "canonCard": {
+    "label": "The category standard",
+    "thesis": "A familiar SaaS account page, executed cleanly.",
+    "palette": ["#F8FAFC", "#FFFFFF", "#0F172A", "#2563EB"],
+    "materials": ["flat card", "blue action", "gray border"],
+    "viewport": "A centered card with logo, title, fields, and one blue button.",
+    "risk": "Clear but forgettable; it does not express Habit Shaper’s private, reflective purpose.",
+    "sketch": ".impeccable/sketches/canon.png"
+  }
+}

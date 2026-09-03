@@ -10,11 +10,16 @@ export interface RegistrationInput {
   timezone: string;
 }
 
-interface RegistrationResponse {
+export interface LoginInput {
+  email: string;
+  password: string;
+}
+
+export interface AuthResponse {
   user: PublicUser;
 }
 
-function isRegistrationResponse(value: unknown): value is RegistrationResponse {
+function isAuthResponse(value: unknown): value is AuthResponse {
   if (!value || typeof value !== 'object' || !('user' in value)) {
     return false;
   }
@@ -65,8 +70,44 @@ export async function register(input: RegistrationInput): Promise<PublicUser> {
     throw new Error(errorMessage(body));
   }
 
-  if (!isRegistrationResponse(body)) {
+  if (!isAuthResponse(body)) {
     throw new Error('The server returned an invalid response.');
+  }
+
+  return body.user;
+}
+
+export async function login(input: LoginInput): Promise<PublicUser> {
+  const response = await fetch('/api/auth/login', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  const body: unknown = await response.json();
+
+  if (!response.ok) {
+    throw new Error(errorMessage(body));
+  }
+
+  if (!isAuthResponse(body)) {
+    throw new Error('The server returned an invalid response.');
+  }
+
+  return body.user;
+}
+
+export async function getCurrentUser(): Promise<PublicUser | null> {
+  const response = await fetch('/api/auth/me', { credentials: 'include' });
+
+  if (response.status === 401) {
+    return null;
+  }
+
+  const body: unknown = await response.json();
+
+  if (!response.ok || !isAuthResponse(body)) {
+    throw new Error('Unable to restore your session.');
   }
 
   return body.user;
