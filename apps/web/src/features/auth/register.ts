@@ -112,3 +112,7 @@ export async function getCurrentUser(): Promise<PublicUser | null> {
 
   return body.user;
 }
+
+export async function logout(): Promise<void> {
+  await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+}

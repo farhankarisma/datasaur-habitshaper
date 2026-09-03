@@ -11,10 +11,14 @@ import {
 } from '@nestjs/common';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 
-import { AuthService, type PublicUser } from './auth.service.js';
+import {
+  AuthService,
+  SESSION_COOKIE_NAME,
+  type PublicUser,
+} from './auth.service.js';
 import { loginSchema } from './login.schema.js';
 import { registrationSchema } from './registration.schema.js';
-import { setSessionCookie } from './session-cookie.js';
+import { clearSessionCookie, setSessionCookie } from './session-cookie.js';
 import { SessionGuard } from './session.guard.js';
 
 export interface RegistrationResponse {
@@ -82,5 +86,15 @@ export class AuthController {
   @UseGuards(SessionGuard)
   me(@Req() request: FastifyRequest): RegistrationResponse {
     return { user: request.habitShaperUser! };
+  }
+
+  @Post('logout')
+  async logout(
+    @Req() request: FastifyRequest,
+    @Res({ passthrough: true }) reply: FastifyReply,
+  ): Promise<void> {
+    const sessionToken = request.cookies[SESSION_COOKIE_NAME];
+    if (sessionToken) await this.authService.revokeSession(sessionToken);
+    clearSessionCookie(reply);
   }
 }
