@@ -63,4 +63,66 @@ describe('HabitsService', () => {
     });
     vi.useRealTimers();
   });
+
+  it('keeps yesterday’s streak alive until today closes', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-09-04T12:00:00.000Z'));
+    const service = new HabitsService({
+      habit: {
+        findMany: vi.fn().mockResolvedValue([
+          {
+            id: 'habit-1',
+            name: 'Read',
+            type: 'BUILD',
+            createdAt: new Date('2026-09-01T00:00:00.000Z'),
+            periods: [{ startedOn: new Date('2026-09-01T00:00:00.000Z') }],
+            buildCompletions: [
+              { completedOn: new Date('2026-09-02T00:00:00.000Z') },
+              { completedOn: new Date('2026-09-03T00:00:00.000Z') },
+            ],
+            relapses: [],
+          },
+        ]),
+      },
+    } as unknown as PrismaService);
+
+    await expect(service.list('user-1', 'UTC')).resolves.toEqual([
+      {
+        id: 'habit-1',
+        name: 'Read',
+        type: 'BUILD',
+        streak: 2,
+        completedToday: false,
+      },
+    ]);
+    vi.useRealTimers();
+  });
+
+  it('does not count completions before the active habit period', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-09-04T12:00:00.000Z'));
+    const service = new HabitsService({
+      habit: {
+        findMany: vi.fn().mockResolvedValue([
+          {
+            id: 'habit-1',
+            name: 'Read',
+            type: 'BUILD',
+            createdAt: new Date('2026-09-03T00:00:00.000Z'),
+            periods: [{ startedOn: new Date('2026-09-03T00:00:00.000Z') }],
+            buildCompletions: [
+              { completedOn: new Date('2026-09-02T00:00:00.000Z') },
+              { completedOn: new Date('2026-09-03T00:00:00.000Z') },
+            ],
+            relapses: [],
+          },
+        ]),
+      },
+    } as unknown as PrismaService);
+
+    await expect(service.list('user-1', 'UTC')).resolves.toMatchObject([
+      { streak: 1 },
+    ]);
+    vi.useRealTimers();
+  });
 });
