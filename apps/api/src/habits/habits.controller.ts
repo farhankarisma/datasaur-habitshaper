@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import type { FastifyRequest } from 'fastify';
 import { SessionGuard } from '../auth/session.guard.js';
-import { createHabitSchema, renameHabitSchema } from './habit.schema.js';
+import { createHabitSchema, renameHabitSchema } from './dto/habit.schema.js';
 import { HabitsService } from './habits.service.js';
 @Controller('habits')
 @UseGuards(SessionGuard)
