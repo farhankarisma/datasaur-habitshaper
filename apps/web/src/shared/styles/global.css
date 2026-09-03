@@ -245,18 +245,22 @@ h1 {
   padding: 32px 0 24px;
 }
 
-.habits-panel {
+.habits-panel,
+.goals-panel {
   display: grid;
   gap: 16px;
 }
 
-.habits-panel h2 {
+.habits-panel h2,
+.goals-panel h2 {
   margin: 0;
   font-size: 1.25rem;
 }
 
 .habits-panel form,
-.habits-panel li {
+.habits-panel li,
+.goals-panel form,
+.goals-panel li {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -264,7 +268,9 @@ h1 {
 }
 
 .habits-panel input,
-.habits-panel select {
+.habits-panel select,
+.goals-panel input,
+.goals-panel select {
   min-height: 36px;
   padding: 8px 10px;
   border: 1px solid #d2d2d7;
@@ -272,7 +278,8 @@ h1 {
   background: #fff;
 }
 
-.habits-panel ul {
+.habits-panel ul,
+.goals-panel ul {
   display: grid;
   gap: 12px;
   margin: 0;
@@ -280,7 +287,8 @@ h1 {
   list-style: none;
 }
 
-.habits-panel li {
+.habits-panel li,
+.goals-panel li {
   padding-top: 12px;
   border-top: 1px solid #e8e8ed;
 }

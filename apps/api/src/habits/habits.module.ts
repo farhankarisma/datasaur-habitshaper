@@ -7,5 +7,6 @@ import { HabitsService } from './habits.service.js';
   imports: [AuthModule, DatabaseModule],
   controllers: [HabitsController],
   providers: [HabitsService],
+  exports: [HabitsService],
 })
 export class HabitsModule {}

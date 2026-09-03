@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { AppLayout } from '../layouts/AppLayout';
 import { LoginForm } from '../../features/auth/LoginForm';
 import { HabitsPanel } from '../../features/habits/HabitsPanel';
+import { GoalsPanel } from '../../features/goals/GoalsPanel';
 import { RegistrationForm } from '../../features/auth/RegistrationForm';
 import { getCurrentUser, logout, type PublicUser } from '../../features/auth/register';
 import { Button } from '../../shared/components/Button';
@@ -58,6 +59,7 @@ export function AppPage() {
           <p>Signed in as {user.email}. Keep your attention on today.</p>
         </div>
         <HabitsPanel />
+        <GoalsPanel />
       </AppLayout>
     );
   }
