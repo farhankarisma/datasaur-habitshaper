@@ -58,6 +58,10 @@ export class HabitsController {
   }
   @Delete(':id')
   archive(@Req() r: FastifyRequest, @Param('id') id: string) {
-    return this.habits.archive(r.habitShaperUser!.id, id);
+    return this.habits.archive(
+      r.habitShaperUser!.id,
+      id,
+      r.habitShaperUser!.timezone,
+    );
   }
 }

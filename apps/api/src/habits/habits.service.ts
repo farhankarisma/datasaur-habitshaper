@@ -6,6 +6,7 @@ import {
   cleanStreak,
   weeklyBuildProgress,
 } from './domain/habit-statistics.js';
+import { localCalendarDate } from './domain/local-calendar-date.js';
 import type { CreateHabitInput, RenameHabitInput } from './dto/habit.schema.js';
 @Injectable()
 export class HabitsService {
@@ -128,13 +129,13 @@ export class HabitsService {
       data: { name: input.name },
     });
   }
-  async archive(userId: string, habitId: string) {
+  async archive(userId: string, habitId: string, timezone: string) {
     const habit = await this.prisma.habit.findFirst({
       where: { id: habitId, userId, status: 'ACTIVE' },
     });
     if (!habit) throw new NotFoundException();
 
-    const today = this.today('UTC');
+    const today = localCalendarDate(timezone);
     return this.prisma.$transaction(async (tx) => {
       await tx.habitPeriod.updateMany({
         where: { habitId: habit.id, endedOn: null },
@@ -147,21 +148,6 @@ export class HabitsService {
     });
   }
   private today(timezone: string): Date {
-    const parts = new Intl.DateTimeFormat('en-CA', {
-      timeZone: timezone,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    }).formatToParts();
-    const part = (type: Intl.DateTimeFormatPartTypes): string =>
-      parts.find((item) => item.type === type)!.value;
-
-    return new Date(
-      Date.UTC(
-        Number(part('year')),
-        Number(part('month')) - 1,
-        Number(part('day')),
-      ),
-    );
+    return localCalendarDate(timezone);
   }
 }
