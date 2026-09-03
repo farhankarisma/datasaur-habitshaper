@@ -59,7 +59,7 @@ A task is `DONE` only when:
 | `UX-001`    | Establish the visual system                  | `BACKLOG`     | `FOUND-001`                       |
 | `UX-002`    | Complete dashboard composition               | `BACKLOG`     | Habits, tracking, and goals       |
 | `UX-003`    | Refine language and relapse experience       | `BACKLOG`     | `UX-002`                          |
-| `QA-001`    | Complete domain and time-boundary  tests      | `BACKLOG`     | Tracking policies                 |
+| `QA-001`    | Complete domain and time-boundary tests      | `BACKLOG`     | Tracking policies                 |
 | `QA-002`    | Complete API integration tests               | `BACKLOG`     | Auth through goals                |
 | `QA-003`    | Add Playwright critical journeys             | `BACKLOG`     | Stable M6 Compose application     |
 | `SEC-001`   | Apply MVP security baseline                  | `BACKLOG`     | Authentication and API foundation |
