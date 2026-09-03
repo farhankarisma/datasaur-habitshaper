@@ -37,8 +37,8 @@ export class HabitsController {
     );
   }
   @Delete(':id/today')
-  undoBuildCompletion(@Req() r: FastifyRequest) {
-    return this.habits.undoBuildCompletion(
+  undoToday(@Req() r: FastifyRequest) {
+    return this.habits.undoToday(
       r.habitShaperUser!.id,
       (r.params as { id: string }).id,
       r.habitShaperUser!.timezone,

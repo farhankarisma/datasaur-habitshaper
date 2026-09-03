@@ -93,6 +93,7 @@ describe('HabitsService', () => {
         type: 'BUILD',
         streak: 2,
         completedToday: false,
+        relapsedToday: false,
         weekly: {
           eligibleDays: 4,
           completedDays: 2,
@@ -164,6 +165,35 @@ describe('HabitsService', () => {
         },
       },
     ]);
+    vi.useRealTimers();
+  });
+
+  it('records a relapse on the authenticated user’s local date', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-09-03T17:30:00.000Z'));
+    const upsert = vi.fn();
+    const service = new HabitsService({
+      habit: {
+        findFirst: vi.fn().mockResolvedValue({ id: 'habit-1', type: 'QUIT' }),
+      },
+      relapse: { upsert },
+    } as unknown as PrismaService);
+
+    await service.markToday('user-1', 'habit-1', 'Asia/Jakarta');
+
+    expect(upsert).toHaveBeenCalledWith({
+      where: {
+        habitId_relapsedOn: {
+          habitId: 'habit-1',
+          relapsedOn: new Date('2026-09-04T00:00:00.000Z'),
+        },
+      },
+      create: {
+        habitId: 'habit-1',
+        relapsedOn: new Date('2026-09-04T00:00:00.000Z'),
+      },
+      update: {},
+    });
     vi.useRealTimers();
   });
 });
